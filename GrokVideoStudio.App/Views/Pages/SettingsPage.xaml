@@ -127,7 +127,7 @@
                             <ui:TextBox Text="{Binding YouTubeApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Path to Google client_secrets.json" />
                             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                 <ui:Button Content="Connect YouTube" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
-                                           Command="{Binding ConnectYouTubeCommand}" Padding="16,6"
+                                           Command="{Binding ConnectYouTubeCommand}" Padding="16,6" />
                                 <ui:Button Content="Disconnect" Appearance="Caution"
                                            Command="{Binding DisconnectYouTubeCommand}" Padding="16,6"
                                            Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
