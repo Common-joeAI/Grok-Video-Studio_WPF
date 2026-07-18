@@ -17,7 +17,7 @@
       Icons: platform sections use Segoe Fluent Icons (Globe/Video/Cloud for each platform).
     -->
 
-    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->

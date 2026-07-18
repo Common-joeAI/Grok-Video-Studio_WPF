@@ -19,12 +19,18 @@
     <!--
       WPF rebuild of the Python/PySide6 Grok-Video-Studio app.
       NavigationView manages both the nav pane and content area automatically.
+
+      ScrollViewer.VerticalScrollBarVisibility="Disabled" on NavigationView prevents
+      the internal Frame from clipping page content. Each page owns its own
+      ScrollViewer so scrolling is page-scoped, not window-scoped.
     -->
 
     <ui:NavigationView
         x:Name="RootNavigation"
         PaneDisplayMode="Left"
-        IsPaneOpen="True">
+        IsPaneOpen="True"
+        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
         <ui:NavigationView.TitleBar>
             <ui:TitleBar Title="Grok Video Studio">

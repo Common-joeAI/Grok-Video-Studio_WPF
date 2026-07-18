@@ -17,7 +17,7 @@
       All sensitive keys use PasswordBox (masked) and are stored via DPAPI encryption.
     -->
 
-    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->

@@ -17,7 +17,7 @@
       Icons: all use Segoe Fluent Icons via WPF UI SymbolIcon.
     -->
 
-    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->
