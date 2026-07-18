@@ -66,7 +66,15 @@ public partial class App : WpfUiApp
                 // ── Audio analysis & chained generation ──
                 services.AddHttpClient<AudioAnalysisService>();
                 services.AddSingleton<IAudioAnalysisService>(sp => sp.GetRequiredService<AudioAnalysisService>());
-                services.AddSingleton<IChainedGenerationService, ChainedGenerationService>();
+                services.AddSingleton<IChainedGenerationService>(sp => new ChainedGenerationService(
+                    sp.GetRequiredService<IVideoGenerationFactory>(),
+                    sp.GetRequiredService<IVideoDownloadService>(),
+                    sp.GetRequiredService<IVideoStorageService>(),
+                    sp.GetRequiredService<IActivityLogService>(),
+                    sp.GetRequiredService<IBrandingService>()));
+
+                // ── Branding ──
+                services.AddSingleton<IBrandingService, BrandingService>();
 
                 // ── Navigation ──
                 services.AddSingleton<INavigationService, NavigationService>();
@@ -81,6 +89,7 @@ public partial class App : WpfUiApp
                 services.AddTransient<ActivityLogViewModel>();
                 services.AddTransient<SettingsViewModel>();
                 services.AddTransient<ChainGenerationViewModel>();
+                services.AddTransient<BrandingViewModel>();
 
                 // ── Main window ──
                 services.AddSingleton<MainWindow>();

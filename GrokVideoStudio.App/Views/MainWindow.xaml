@@ -41,6 +41,7 @@
         <ui:NavigationView.MenuItems>
             <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Filmstrip24}" />
             <ui:NavigationViewItem Content="Chain" TargetPageType="{x:Type pages:ChainPage}" Icon="{ui:SymbolIcon Link24}" />
+            <ui:NavigationViewItem Content="Branding" TargetPageType="{x:Type pages:BrandingPage}" Icon="{ui:SymbolIcon PaintBrush24}" />
             <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
             <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />
             <ui:NavigationViewItem Content="Stitch" TargetPageType="{x:Type pages:StitchPage}" Icon="{ui:SymbolIcon Cut24}" />

@@ -57,7 +57,9 @@ public sealed record ChainedGenerationRequest
 
     /// <summary>FFmpeg path.</summary>
     public string FfmpegPath { get; init; } = "ffmpeg";
-}
+
+    /// <summary>Optional brand settings to apply after stitching.</summary>
+    public BrandSettings? Brand { get; init; }
 
 /// <summary>Result of a chained generation run.</summary>
 public sealed record ChainedGenerationResult
@@ -86,17 +88,20 @@ public sealed class ChainedGenerationService : IChainedGenerationService
     private readonly IVideoDownloadService _downloadService;
     private readonly IVideoStorageService _storageService;
     private readonly IActivityLogService _activityLog;
+    private readonly IBrandingService? _brandingService;
 
     public ChainedGenerationService(
         IVideoGenerationFactory videoFactory,
         IVideoDownloadService downloadService,
         IVideoStorageService storageService,
-        IActivityLogService activityLog)
+        IActivityLogService activityLog,
+        IBrandingService? brandingService = null)
     {
         _videoFactory = videoFactory;
         _downloadService = downloadService;
         _storageService = storageService;
         _activityLog = activityLog;
+        _brandingService = brandingService;
     }
 
     public async Task<ChainedGenerationResult> RunChainedGenerationAsync(
@@ -270,6 +275,43 @@ public sealed class ChainedGenerationService : IChainedGenerationService
             }));
 
         await stitchService.StitchAsync(clipPaths, finalPath, stitchOpts, stitchProgress, ct);
+
+        // Apply branding if configured
+        var brand = request.Brand;
+        if (brand is null && _brandingService is not null)
+            brand = _brandingService.LoadBrand();
+        
+        if (brand is { ApplyToAllVideos: true } && _brandingService is not null)
+        {
+            progress?.Report(new ChainedGenerationProgress
+            {
+                CurrentClip = clipCount,
+                TotalClips = clipCount,
+                Stage = "branding",
+                Message = "Applying brand identity (logo, watermark, color grade, bumpers)…",
+                OverallPercent = 98
+            });
+
+            var brandedPath = Path.Combine(request.OutputDirectory, $"chain_branded_{DateTime.Now:yyyyMMdd_HHmmss}.mp4");
+            try
+            {
+                await _brandingService.ApplyFullBrandingAsync(finalPath, brandedPath, brand,
+                    new Progress<string>(msg => progress?.Report(new ChainedGenerationProgress
+                    {
+                        CurrentClip = clipCount,
+                        TotalClips = clipCount,
+                        Stage = "branding",
+                        Message = msg,
+                        OverallPercent = 99
+                    })), ct);
+                finalPath = brandedPath;
+            }
+            catch (Exception brandEx)
+            {
+                _activityLog.Log($"Branding failed (video still usable): {brandEx.Message}", LogLevel.Warning);
+                // Continue with unbranded video
+            }
+        }
 
         _activityLog.Log($"Chained generation complete: {finalPath} ({clipPaths.Count} clips stitched)", LogLevel.Information);
 

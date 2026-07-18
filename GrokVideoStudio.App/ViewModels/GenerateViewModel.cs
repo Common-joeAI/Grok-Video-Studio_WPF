@@ -31,6 +31,7 @@ public partial class GenerateViewModel : ObservableObject
     private readonly IVideoDownloadService _downloadService;
     private readonly IActivityLogService _activityLog;
     private readonly IUsageStatsService _usageStats;
+    private readonly IBrandingService _brandingService;
     private readonly ILogger<GenerateViewModel> _logger;
     private readonly IVideoGenerationFactory _videoFactory;
     private readonly IPromptGenerationService _grokPrompt;
@@ -104,6 +105,7 @@ public partial class GenerateViewModel : ObservableObject
         GrokPromptService grokPrompt,
         OpenAiPromptService openAiPrompt,
         OllamaPromptService ollamaPrompt,
+        IBrandingService brandingService,
         ILogger<GenerateViewModel> logger)
     {
         _settingsService = settingsService;
@@ -115,6 +117,7 @@ public partial class GenerateViewModel : ObservableObject
         _grokPrompt = grokPrompt;
         _openAiPrompt = openAiPrompt;
         _ollamaPrompt = ollamaPrompt;
+        _brandingService = brandingService;
         _logger = logger;
 
         LoadDefaults();
@@ -276,6 +279,26 @@ public partial class GenerateViewModel : ObservableObject
                         localPath = await _downloadService.DownloadAsync(
                             result.Video.Url, downloadDir, null, _cts!.Token);
                         _activityLog.Log($"Downloaded to {localPath}", LogLevel.Information);
+
+                        // Apply branding if enabled
+                        try
+                        {
+                            var brand = _brandingService.LoadBrand();
+                            if (brand.ApplyToAllVideos)
+                            {
+                                _activityLog.Log("Applying brand identity…", LogLevel.Information);
+                                var brandedPath = Path.Combine(
+                                    Path.GetDirectoryName(localPath)!,
+                                    $"branded_{Path.GetFileName(localPath)}");
+                                localPath = await _brandingService.ApplyFullBrandingAsync(
+                                    localPath, brandedPath, brand, null, _cts!.Token);
+                                _activityLog.Log($"Branding applied: {localPath}", LogLevel.Information);
+                            }
+                        }
+                        catch (Exception brandEx)
+                        {
+                            _activityLog.Log($"Branding failed: {brandEx.Message}", LogLevel.Warning);
+                        }
                     }
                     catch (Exception dlEx)
                     {
