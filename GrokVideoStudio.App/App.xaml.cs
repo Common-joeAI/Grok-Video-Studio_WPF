@@ -61,6 +61,7 @@ public partial class App : WpfUiApp
                 services.AddHttpClient<FacebookUploadService>();
                 services.AddHttpClient<InstagramUploadService>();
                 services.AddHttpClient<TikTokUploadService>();
+                services.AddSingleton<FolderPublishService>();
                 services.AddSingleton<ISocialPublishingFactory, SocialPublishingFactory>();
 
                 // ── Audio analysis & chained generation ──

@@ -6,11 +6,13 @@ using CommunityToolkit.Mvvm.Input;
 using GrokVideoStudio.Core.Models;
 using GrokVideoStudio.Core.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace GrokVideoStudio.App.ViewModels;
 
 /// <summary>
-/// Publish page ViewModel — social publishing to YouTube, TikTok, Facebook, Instagram.
+/// Publish page ViewModel — social publishing to YouTube, TikTok, Facebook, Instagram,
+/// and local folder export.
 /// 
 /// FEATURE PARITY: The original Python app supports both API upload and
 /// browser automation for each platform. This ViewModel orchestrates both paths.
@@ -65,9 +67,23 @@ public partial class PublishViewModel : ObservableObject
     [ObservableProperty]
     private double _publishProgress;
 
+    /// <summary>
+    /// Target folder for the Folder publish option. Bound from the UI folder picker.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PublishCommand))]
+    private string _targetFolder = string.Empty;
+
+    /// <summary>
+    /// True when the Folder platform is selected — used to show/hide the folder picker UI.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isFolderMode;
+
     public ObservableCollection<SocialPlatform> Platforms { get; } =
     [
-        SocialPlatform.YouTube, SocialPlatform.TikTok, SocialPlatform.Facebook, SocialPlatform.Instagram
+        SocialPlatform.YouTube, SocialPlatform.TikTok, SocialPlatform.Facebook,
+        SocialPlatform.Instagram, SocialPlatform.Folder
     ];
 
     public PublishViewModel(
@@ -86,6 +102,41 @@ public partial class PublishViewModel : ObservableObject
         _logger = logger;
     }
 
+    /// <summary>
+    /// Called when SelectedPlatform changes — updates IsFolderMode and loads the
+    /// saved publish folder from settings.
+    /// </summary>
+    partial void OnSelectedPlatformChanged(SocialPlatform value)
+    {
+        IsFolderMode = value == SocialPlatform.Folder;
+        if (IsFolderMode && string.IsNullOrEmpty(TargetFolder))
+        {
+            var settings = _settingsService.LoadSettings();
+            TargetFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
+                settings.PublishFolder);
+        }
+        PublishCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private void BrowseFolder()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Select publish destination folder",
+            InitialDirectory = string.IsNullOrEmpty(TargetFolder) && Directory.Exists(TargetFolder)
+                ? TargetFolder
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            TargetFolder = dialog.FolderName;
+            PublishCommand.NotifyCanExecuteChanged();
+        }
+    }
+
     [RelayCommand]
     private async Task LoadVideosAsync()
     {
@@ -98,6 +149,13 @@ public partial class PublishViewModel : ObservableObject
     private async Task PublishAsync()
     {
         if (SelectedVideo is null) return;
+
+        // Folder mode requires a target folder.
+        if (SelectedPlatform == SocialPlatform.Folder && string.IsNullOrWhiteSpace(TargetFolder))
+        {
+            StatusMessage = "✗ Select a destination folder first.";
+            return;
+        }
 
         IsPublishing = true;
         PublishProgress = 0;
@@ -125,7 +183,7 @@ public partial class PublishViewModel : ObservableObject
         {
             string resultId;
 
-            if (UseBrowserAutomation)
+            if (UseBrowserAutomation && SelectedPlatform != SocialPlatform.Folder)
             {
                 // Browser automation mode — would use Playwright for .NET
                 // The original Python app uses CDP + Chrome extension for this
@@ -138,6 +196,24 @@ public partial class PublishViewModel : ObservableObject
                 // API upload — use the publishing factory to resolve the right service
                 switch (SelectedPlatform)
                 {
+                    case SocialPlatform.Folder:
+                        var folderService = _publishingFactory.GetFolderService();
+                        if (folderService is null)
+                        {
+                            StatusMessage = "Folder publish service not available.";
+                            return;
+                        }
+                        resultId = await folderService.PublishAsync(
+                            videoPath, TargetFolder, Title, Description, tagList, progress, default);
+
+                        // Persist the chosen folder for next time.
+                        var currentSettings = _settingsService.LoadSettings();
+                        await _settingsService.SaveSettingsAsync(currentSettings with
+                        {
+                            PublishFolder = Path.GetFileName(TargetFolder)
+                        });
+                        break;
+
                     case SocialPlatform.YouTube:
                         var ytService = _publishingFactory.GetYouTubeService();
                         if (ytService is null)
@@ -226,5 +302,9 @@ public partial class PublishViewModel : ObservableObject
         }
     }
 
-    private bool CanPublish() => !IsPublishing && SelectedVideo is not null && !string.IsNullOrEmpty(Title);
+    private bool CanPublish() =>
+        !IsPublishing
+        && SelectedVideo is not null
+        && !string.IsNullOrEmpty(Title)
+        && (!IsFolderMode || !string.IsNullOrWhiteSpace(TargetFolder));
 }

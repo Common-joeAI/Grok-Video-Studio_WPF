@@ -57,5 +57,6 @@ public sealed record AppSettings
     public int MaxPollAttempts { get; init; } = 120;
 
     // ── Download ──
+    public string PublishFolder { get; init; } = "publish";
     public string VideoDownloadFolder { get; init; } = "downloads";
 }

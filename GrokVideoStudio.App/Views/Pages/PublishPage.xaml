@@ -13,8 +13,7 @@
     Loaded="Page_Loaded">
 
     <!--
-      Publish page — upload videos to social platforms.
-      Icons: platform sections use Segoe Fluent Icons (Globe/Video/Cloud for each platform).
+      Publish page — upload videos to social platforms or export to a local folder.
     -->
 
     <Grid Margin="32,24,32,32">
@@ -23,7 +22,7 @@
             <!-- ── Header ── -->
             <StackPanel helpers:StackPanelHelper.Spacing="4">
                 <TextBlock Text="Publish" FontSize="28" FontWeight="SemiBold" />
-                <TextBlock Text="Upload your video to social platforms" FontSize="14" Opacity="0.6" />
+                <TextBlock Text="Upload your video to social platforms or save to a folder" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
             <!-- ── Source video ── -->
@@ -54,6 +53,24 @@
                         <ComboBox ItemsSource="{Binding Platforms}" SelectedItem="{Binding SelectedPlatform}" MinWidth="160" />
                     </StackPanel>
 
+                    <!-- ── Folder picker (visible only in Folder mode) ── -->
+                    <StackPanel helpers:StackPanelHelper.Spacing="6"
+                                Visibility="{Binding IsFolderMode, Converter={StaticResource CustomBoolToVisConverter}}">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6">
+                            <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" />
+                            <TextBlock Text="Destination Folder" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:TextBox Text="{Binding TargetFolder, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="Select a destination folder…"
+                                        MinWidth="400"
+                                        IsReadOnly="True" />
+                            <ui:Button Content="Browse…" Icon="{ui:SymbolIcon FolderOpen24}"
+                                       Command="{Binding BrowseFolderCommand}"
+                                       Padding="16,6" />
+                        </StackPanel>
+                    </StackPanel>
+
                     <StackPanel helpers:StackPanelHelper.Spacing="6">
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6">
                             <ui:SymbolIcon Symbol="TextDescription24" FontSize="14" />
@@ -82,7 +99,9 @@
                         <ui:TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="tag1, tag2, tag3" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                    <!-- Browser automation toggle (hidden in Folder mode — no browser needed) -->
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8"
+                                Visibility="{Binding IsFolderMode, Converter={StaticResource InverseBoolToVisConverter}}">
                         <ui:SymbolIcon Symbol="Desktop24" FontSize="16" />
                         <CheckBox Content="Use browser automation (instead of API)" IsChecked="{Binding UseBrowserAutomation}" />
                     </StackPanel>

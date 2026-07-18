@@ -29,6 +29,7 @@ public enum PromptSource
 public enum SocialPlatform
 {
     YouTube,
+    Folder,
     TikTok,
     Facebook,
     Instagram

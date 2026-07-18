@@ -13,6 +13,7 @@ public interface ISocialPublishingFactory
     FacebookUploadService? GetFacebookService();
     InstagramUploadService? GetInstagramService();
     TikTokUploadService? GetTikTokService();
+    FolderPublishService? GetFolderService();
 }
 
 public sealed class SocialPublishingFactory : ISocialPublishingFactory
@@ -35,4 +36,7 @@ public sealed class SocialPublishingFactory : ISocialPublishingFactory
 
     public TikTokUploadService? GetTikTokService() =>
         _services.GetService(typeof(TikTokUploadService)) as TikTokUploadService;
+
+    public FolderPublishService? GetFolderService() =>
+        _services.GetService(typeof(FolderPublishService)) as FolderPublishService;
 }
