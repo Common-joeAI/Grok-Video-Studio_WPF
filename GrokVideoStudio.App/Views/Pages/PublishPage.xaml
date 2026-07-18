@@ -11,18 +11,27 @@
     Title="Publish"
     Loaded="Page_Loaded">
 
+    <!--
+      Publish page — upload videos to social platforms.
+      Icons: platform sections use Segoe Fluent Icons (Globe/Video/Cloud for each platform).
+    -->
+
     <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
         <StackPanel MaxWidth="720" Spacing="20">
 
+            <!-- ── Header ── -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Publish" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock Text="Upload your video to social platforms" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
-            <!-- Source video selection -->
+            <!-- ── Source video ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Source Video" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Film24" FontSize="16" />
+                        <TextBlock Text="Source Video" FontWeight="Medium" />
+                    </StackPanel>
                     <ui:ComboBox ItemsSource="{Binding AvailableVideos}"
                                  SelectedItem="{Binding SelectedVideo}"
                                  DisplayMemberPath="Prompt"
@@ -30,23 +39,33 @@
                 </StackPanel>
             </Border>
 
-            <!-- Platform + metadata -->
+            <!-- ── Platform & metadata ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Platform & Metadata" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Share24" FontSize="16" />
+                        <TextBlock Text="Platform &amp; Metadata" FontWeight="Medium" />
+                    </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="Platform" VerticalAlignment="Center" Width="100" />
+                        <ui:SymbolIcon Symbol="Globe24" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="Platform" VerticalAlignment="Center" Width="90" />
                         <ui:ComboBox ItemsSource="{Binding Platforms}" SelectedItem="{Binding SelectedPlatform}" MinWidth="160" />
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Title" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ui:SymbolIcon Symbol="TextDescription24" FontSize="14" />
+                            <TextBlock Text="Title" />
+                        </StackPanel>
                         <ui:TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Video title…" />
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Description" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ui:SymbolIcon Symbol="TextAlignLeft24" FontSize="14" />
+                            <TextBlock Text="Description" />
+                        </StackPanel>
                         <ui:TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                                     PlaceholderText="Description…"
                                     AcceptsReturn="True"
@@ -55,15 +74,21 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Tags (comma-separated)" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <ui:SymbolIcon Symbol="Tag24" FontSize="14" />
+                            <TextBlock Text="Tags (comma-separated)" />
+                        </StackPanel>
                         <ui:TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="tag1, tag2, tag3" />
                     </StackPanel>
 
-                    <CheckBox Content="Use browser automation (instead of API)" IsChecked="{Binding UseBrowserAutomation}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Desktop24" FontSize="16" />
+                        <CheckBox Content="Use browser automation (instead of API)" IsChecked="{Binding UseBrowserAutomation}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <ui:Button Content="Publish Video" Icon="{ui:SymbolIcon Share24}" Appearance="Primary"
+            <ui:Button Content="Publish Video" Icon="{ui:SymbolIcon Send24}" Appearance="Primary"
                        Command="{Binding PublishCommand}" Padding="24,10" />
 
             <TextBlock Text="{Binding StatusMessage}" Opacity="0.7" TextWrapping="Wrap" />

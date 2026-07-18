@@ -10,15 +10,22 @@
     mc:Ignorable="d"
     Title="Settings">
 
+    <!--
+      Settings page — API keys, models, pipeline defaults, theme.
+      Each section card has a Segoe Fluent Icon in its header.
+      All sensitive keys use PasswordBox (masked) and are stored via DPAPI encryption.
+    -->
+
     <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
         <StackPanel MaxWidth="720" Spacing="20">
 
+            <!-- ── Header ── -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock Text="Configure API keys, models, and pipeline defaults" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
-            <!-- xAI Grok -->
+            <!-- ── xAI Grok ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -27,96 +34,178 @@
                     </StackPanel>
                     <ui:PasswordBox Password="{Binding GrokApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <TextBlock Grid.Row="0" Text="Chat Model" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Chat Model" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GrokChatModel}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="1" Text="Video Model" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Video Model" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding GrokVideoModel}" Margin="0,0,0,10" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- OpenAI -->
+            <!-- ── OpenAI ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="OpenAI API" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Brain24" FontSize="18" />
+                        <TextBlock Text="OpenAI API" FontWeight="Medium" />
+                    </StackPanel>
                     <ui:PasswordBox Password="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
                     <Grid ColumnDefinitions="Auto,*">
-                        <TextBlock Text="Chat Model" VerticalAlignment="Center" Margin="0,0,16,0" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Chat Model" />
+                        </StackPanel>
                         <ui:TextBox Grid.Column="1" Text="{Binding OpenAiChatModel}" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Ollama -->
+            <!-- ── Ollama ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="LocalSwim24" FontSize="18" />
+                        <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
+                    </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <TextBlock Grid.Row="0" Text="API Base" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Link24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="API Base" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OllamaApiBase}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="1" Text="Model" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Model" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OllamaChatModel}" Margin="0,0,0,10" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Seedance -->
+            <!-- ── Seedance ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Seedance API" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
+                        <TextBlock Text="Seedance API" FontWeight="Medium" />
+                    </StackPanel>
                     <ui:PasswordBox Password="{Binding SeedanceApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
                 </StackPanel>
             </Border>
 
-            <!-- Social Publishing -->
+            <!-- ── Social Publishing ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Social Publishing" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Share24" FontSize="18" />
+                        <TextBlock Text="Social Publishing" FontWeight="Medium" />
+                    </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                        <TextBlock Grid.Row="0" Text="YouTube API" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="YouTube API" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding YouTubeApiKey}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="1" Text="FB Token" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="FB Token" />
+                        </StackPanel>
                         <ui:PasswordBox Grid.Row="1" Grid.Column="1" Password="{Binding FacebookAccessToken}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="2" Text="FB Page ID" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="FB Page ID" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FacebookPageId}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="3" Text="IG User ID" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="IG User ID" />
+                        </StackPanel>
                         <ui:TextBox Grid.Row="3" Grid.Column="1" Text="{Binding InstagramUserId}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="4" Text="IG Token" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="IG Token" />
+                        </StackPanel>
                         <ui:PasswordBox Grid.Row="4" Grid.Column="1" Password="{Binding InstagramAccessToken}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="5" Text="TikTok Token" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="MusicNote224" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="TikTok Token" />
+                        </StackPanel>
                         <ui:PasswordBox Grid.Row="5" Grid.Column="1" Password="{Binding TikTokAccessToken}" Margin="0,0,0,10" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Generation defaults -->
+            <!-- ── FFmpeg & Tools ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Generation Defaults" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Code24" FontSize="18" />
+                        <TextBlock Text="FFmpeg &amp; Tools" FontWeight="Medium" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Opacity="0.5" />
+                        <TextBlock Text="FFmpeg Path" VerticalAlignment="Center" Width="100" />
+                        <ui:TextBox Text="{Binding FfmpegPath}" PlaceholderText="ffmpeg" MinWidth="200" />
+                        <ui:Button Content="Test" Icon="{ui:SymbolIcon Checkmark24}" Appearance="Secondary" Command="{Binding TestFfmpegCommand}" Padding="12,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Generation defaults ── -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="SettingsAdjustments24" FontSize="18" />
+                        <TextBlock Text="Generation Defaults" FontWeight="Medium" />
+                    </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                        <TextBlock Grid.Row="0" Text="Duration (s)" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Timer24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Duration (s)" />
+                        </StackPanel>
                         <ui:NumberBox Grid.Row="0" Grid.Column="1" Value="{Binding DefaultDuration}" Minimum="1" Maximum="15" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="1" Text="Aspect Ratio" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="AspectRatio24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Aspect Ratio" />
+                        </StackPanel>
                         <ui:ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="2" Text="Resolution" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Resolution24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Resolution" />
+                        </StackPanel>
                         <ui:ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="3" Text="Poll Interval (s)" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="Clock24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Poll Interval (s)" />
+                        </StackPanel>
                         <ui:NumberBox Grid.Row="3" Grid.Column="1" Value="{Binding PollIntervalSeconds}" Minimum="2" Maximum="60" Margin="0,0,0,10" />
-                        <TextBlock Grid.Row="4" Text="Max Poll Attempts" VerticalAlignment="Center" Margin="0,0,16,10" />
+                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
+                            <ui:SymbolIcon Symbol="ArrowRepeatCount24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Max Poll Attempts" />
+                        </StackPanel>
                         <ui:NumberBox Grid.Row="4" Grid.Column="1" Value="{Binding MaxPollAttempts}" Minimum="10" Maximum="500" Margin="0,0,0,10" />
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Theme -->
+            <!-- ── Theme ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Theme" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Color24" FontSize="18" />
+                        <TextBlock Text="Theme" FontWeight="Medium" />
+                    </StackPanel>
                     <ui:ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
                 </StackPanel>
             </Border>
 
-            <!-- Save -->
+            <!-- ── Save bar ── -->
             <StackPanel Orientation="Horizontal" Spacing="16">
                 <ui:Button Content="Save Settings" Icon="{ui:SymbolIcon Save24}" Appearance="Primary"
                            Command="{Binding SaveCommand}" Padding="24,10" />

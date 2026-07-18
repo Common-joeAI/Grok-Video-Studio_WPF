@@ -12,11 +12,15 @@
     ExtendsContentIntoTitleBar="True"
     WindowBackdropType="Mica"
     WindowCornerPreference="Round"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen"
+    Icon="pack://application:,,,/app.ico">
 
     <!--
       WPF rebuild of the Python/PySide6 Grok-Video-Studio app.
       Full feature parity: Generate → History → Player → Stitch → Publish → Activity → Settings
+
+      Icon: app.ico is a custom film/play themed icon — appears in taskbar, title bar,
+      and Alt+Tab. All navigation and page icons use Segoe Fluent Icons via WPF UI SymbolIcon.
     -->
 
     <Grid>
@@ -27,8 +31,9 @@
 
         <ui:TitleBar Grid.Row="0" Title="Grok Video Studio">
             <ui:TitleBar.Header>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-                    <ui:SymbolIcon Symbol="Film24" FontSize="18" Margin="0,0,8,0" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" Spacing="8">
+                    <!-- App logo icon in the title bar -->
+                    <ui:Image Icon="pack://application:,,,/app.ico" Width="20" Height="20" />
                     <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
                 </StackPanel>
             </ui:TitleBar.Header>
@@ -47,6 +52,7 @@
                 Header="Grok Video Studio"
                 IsPaneOpen="True">
                 <ui:NavigationView.MenuItems>
+                    <!-- Each nav item uses a Segoe Fluent Icon glyph -->
                     <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Film24}" />
                     <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
                     <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />

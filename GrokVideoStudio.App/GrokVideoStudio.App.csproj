@@ -17,6 +17,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- Application icon — film/play themed icon for taskbar, window, and installer -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;arm64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
@@ -33,6 +37,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GrokVideoStudio.Core\GrokVideoStudio.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Application icon file -->
+    <None Include="app.ico" Pack="false" />
+    <Resource Include="app.ico" />
   </ItemGroup>
 
 </Project>

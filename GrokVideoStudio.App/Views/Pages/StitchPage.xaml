@@ -11,44 +11,58 @@
     Title="Stitch"
     Loaded="Page_Loaded">
 
+    <!--
+      Stitch page — combine clips with FFmpeg pipeline options.
+      Icons: all use Segoe Fluent Icons via WPF UI SymbolIcon.
+    -->
+
     <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
         <StackPanel MaxWidth="720" Spacing="20">
 
+            <!-- ── Header ── -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Stitch Videos" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock Text="Combine clips with crossfade, interpolation, upscale, and music" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
-            <!-- Available videos -->
+            <!-- ── Available clips ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Available Clips" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Library24" FontSize="16" />
+                        <TextBlock Text="Available Clips" FontWeight="Medium" />
+                    </StackPanel>
                     <ListBox ItemsSource="{Binding AvailableVideos}" Height="180">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="300" />
+                                    <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
+                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="280" />
                                     <TextBlock Text="{Binding Duration, StringFormat='{}{0}s'}" Opacity="0.5" FontSize="12" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <ui:Button Content="Add Selected" Command="{Binding AddToStitchCommand}"
+                    <ui:Button Content="Add Selected" Icon="{ui:SymbolIcon Add24}" Command="{Binding AddToStitchCommand}"
                                CommandParameter="{Binding AvailableVideos/SelectedItem, RelativeSource={RelativeSource Self}}"
                                Appearance="Primary" />
                 </StackPanel>
             </Border>
 
-            <!-- Selected videos -->
+            <!-- ── Stitch queue ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Stitch Queue" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="List24" FontSize="16" />
+                        <TextBlock Text="Stitch Queue" FontWeight="Medium" />
+                    </StackPanel>
                     <ListBox ItemsSource="{Binding SelectedVideos}" Height="120">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="280" />
-                                    <ui:Button Content="✕" Appearance="Caution" FontSize="10" Padding="4,2"
+                                    <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
+                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="260" />
+                                    <ui:Button Icon="{ui:SymbolIcon Dismiss24}" Appearance="Caution" FontSize="10" Padding="4,2"
                                                Command="{Binding DataContext.RemoveFromStitchCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                CommandParameter="{Binding}" />
                                 </StackPanel>
@@ -58,10 +72,13 @@
                 </StackPanel>
             </Border>
 
-            <!-- Pipeline options -->
+            <!-- ── Pipeline options ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Pipeline Options" FontWeight="Medium" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="SettingsAdjustments24" FontSize="16" />
+                        <TextBlock Text="Pipeline Options" FontWeight="Medium" />
+                    </StackPanel>
 
                     <CheckBox Content="Crossfade transitions" IsChecked="{Binding EnableCrossfade}" />
 
@@ -78,8 +95,9 @@
                     <CheckBox Content="GPU encode (NVENC)" IsChecked="{Binding EnableGpuEncode}" />
 
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="Music mix" VerticalAlignment="Center" Width="140" />
-                        <ui:Button Content="Browse…" Command="{Binding BrowseMusicCommand}" />
+                        <ui:SymbolIcon Symbol="MusicNote224" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="Music mix" VerticalAlignment="Center" Width="120" />
+                        <ui:Button Content="Browse…" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding BrowseMusicCommand}" />
                         <TextBlock Text="{Binding MusicMixPath}" Opacity="0.5" TextTrimming="CharacterEllipsis" MaxWidth="200" />
                     </StackPanel>
                 </StackPanel>
