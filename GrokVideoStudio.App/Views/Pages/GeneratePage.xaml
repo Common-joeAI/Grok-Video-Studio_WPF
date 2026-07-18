@@ -134,7 +134,7 @@
                                 <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12" Margin="0,4">
                                     <ui:SymbolIcon Symbol="VideoClip24" FontSize="16" Opacity="0.5" />
                                     <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="300" />
-                                    <TextBlock Text="{Binding VideoUrl}" Opacity="0.5" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="250" />
+                                    <TextBlock Text="{Binding ResultVideoUrl}" Opacity="0.5" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="250" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -144,16 +144,4 @@
 
             </StackPanel>
             </ScrollViewer>
-
-            <Page.Resources>
-                <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-                <helpers:InverseBoolToVisibilityConverter x:Key="InvertBoolToVisConverter" />
-                <helpers:StringToVisibilityConverter x:Key="StringToVisConverter" />
-                <helpers:CountToVisibilityConverter x:Key="CountToVisConverter" />
-                <Style x:Key="CardBorderStyle" TargetType="Border">
-                    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-                    <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-                    <Setter Property="BorderThickness" Value="1" />
-                </Style>
-            </Page.Resources>
         </Page>

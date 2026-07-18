@@ -68,8 +68,9 @@
                                     <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="6"
                                             Padding="6,2" CornerRadius="4" Background="#99000000">
                                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="4">
-                                            <ui:SymbolIcon
-                                                Symbol="{Binding Status, Converter={StaticResource StatusToIconConverter}}"
+                                            <TextBlock
+                                                Text="{Binding Status, Converter={StaticResource StatusToIconConverter}}"
+                                                FontFamily="Segoe Fluent Icons"
                                                 FontSize="12"
                                                 Foreground="{Binding Status, Converter={StaticResource StatusToColorConverter}}" />
                                             <TextBlock Text="{Binding Status}" FontSize="10" Foreground="White" />
@@ -99,7 +100,7 @@
                                     <ui:Button Content="URL" Icon="{ui:SymbolIcon Link24}" Appearance="Secondary"
                                                Command="{Binding DataContext.OpenVideoUrlCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                CommandParameter="{Binding}" Padding="6,3" FontSize="11" />
-                                    <ui:Button Content="DL" Icon="{ui:SymbolIcon Download24}" Appearance="Secondary"
+                                    <ui:Button Content="DL" Icon="{ui:SymbolIcon ArrowDownload24}" Appearance="Secondary"
                                                Command="{Binding DataContext.DownloadVideoCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                CommandParameter="{Binding}" Padding="6,3" FontSize="11" />
                                     <ui:Button Content="Del" Icon="{ui:SymbolIcon Delete24}" Appearance="Caution"
@@ -124,16 +125,4 @@
         </Border>
 
     </Grid>
-
-    <Page.Resources>
-        <helpers:StatusToIconConverter x:Key="StatusToIconConverter" />
-        <helpers:StatusToColorConverter x:Key="StatusToColorConverter" />
-        <helpers:CountToVisibilityConverter x:Key="CountToVisConverter" />
-        <helpers:InvertStringToVisibilityConverter x:Key="InvertStringToVisConverter" />
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-    </Page.Resources>
 </Page>

@@ -37,7 +37,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                    <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
+                                    <ui:SymbolIcon Symbol="Filmstrip24" FontSize="14" Opacity="0.5" />
                                     <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="280" />
                                     <TextBlock Text="{Binding Duration, StringFormat='{}{0}s'}" Opacity="0.5" FontSize="12" />
                                 </StackPanel>
@@ -61,7 +61,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                    <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
+                                    <ui:SymbolIcon Symbol="Filmstrip24" FontSize="14" Opacity="0.5" />
                                     <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="260" />
                                     <ui:Button Icon="{ui:SymbolIcon Dismiss24}" Appearance="Caution" FontSize="10" Padding="4,2"
                                                Command="{Binding DataContext.RemoveFromStitchCommand, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -77,7 +77,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="16">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="SettingsAdjustments24" FontSize="16" />
+                        <ui:SymbolIcon Symbol="Options24" FontSize="16" />
                         <TextBlock Text="Pipeline Options" FontWeight="Medium" />
                     </StackPanel>
 
@@ -111,12 +111,4 @@
 
         </StackPanel>
     </ScrollViewer>
-
-    <Page.Resources>
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-    </Page.Resources>
 </Page>

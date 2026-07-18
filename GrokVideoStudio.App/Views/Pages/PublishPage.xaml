@@ -96,12 +96,4 @@
 
         </StackPanel>
     </ScrollViewer>
-
-    <Page.Resources>
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-    </Page.Resources>
 </Page>

@@ -16,4 +16,12 @@ public partial class StitchPage : Page
         InitializeComponent();
         DataContext = App.Services.GetRequiredService<StitchViewModel>();
     }
+
+    private async void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is StitchViewModel vm)
+        {
+            await vm.LoadVideosCommand.ExecuteAsync(null);
+        }
+    }
 }

@@ -125,16 +125,7 @@
     </Grid>
 
     <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
-
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-
-        <!-- Dynamic Style with DataTriggers for the Mute icon symbol -->
+        <!-- MuteIconStyle is page-specific (DataTrigger on VM property) -->
         <Style x:Key="MuteIconStyle" TargetType="{x:Type ui:SymbolIcon}">
             <Setter Property="Symbol" Value="Speaker224" />
             <Style.Triggers>

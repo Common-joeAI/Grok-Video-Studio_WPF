@@ -57,6 +57,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _musicMixPath = string.Empty;
 
     // ── Misc ──
+    [ObservableProperty] private string _ffmpegPath = "ffmpeg";
     [ObservableProperty] private string _theme = "Dark";
     [ObservableProperty] private int _pollIntervalSeconds = 5;
     [ObservableProperty] private int _maxPollAttempts = 120;
@@ -101,6 +102,7 @@ public partial class SettingsViewModel : ObservableObject
         UpscalePreset = s.UpscalePreset;
         EnableGpuEncode = s.EnableGpuEncode;
         MusicMixPath = s.MusicMixPath;
+        FfmpegPath = s.FfmpegPath;
         Theme = s.Theme;
         PollIntervalSeconds = s.PollIntervalSeconds;
         MaxPollAttempts = s.MaxPollAttempts;
@@ -136,6 +138,7 @@ public partial class SettingsViewModel : ObservableObject
                 UpscalePreset = UpscalePreset,
                 EnableGpuEncode = EnableGpuEncode,
                 MusicMixPath = MusicMixPath,
+                FfmpegPath = FfmpegPath,
                 Theme = Theme,
                 PollIntervalSeconds = PollIntervalSeconds,
                 MaxPollAttempts = MaxPollAttempts,
@@ -163,5 +166,37 @@ public partial class SettingsViewModel : ObservableObject
         GrokApiKey = OpenAiApiKey = SeedanceApiKey = string.Empty;
         YouTubeApiKey = FacebookAccessToken = InstagramAccessToken = TikTokAccessToken = string.Empty;
         StatusMessage = "All keys cleared and settings file deleted.";
+    }
+
+
+    [RelayCommand]
+    private async Task TestFfmpegAsync()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = string.IsNullOrEmpty(FfmpegPath) ? "ffmpeg" : FfmpegPath,
+                Arguments = "-version",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            };
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc is null)
+            {
+                StatusMessage = "✗ Could not start FFmpeg.";
+                return;
+            }
+            var output = await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+            var firstLine = output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "FFmpeg found.";
+            StatusMessage = $"✓ {firstLine}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"✗ FFmpeg not found: {ex.Message}";
+            _logger.LogWarning(ex, "FFmpeg test failed");
+        }
     }
 }

@@ -16,4 +16,12 @@ public partial class PublishPage : Page
         InitializeComponent();
         DataContext = App.Services.GetRequiredService<PublishViewModel>();
     }
+
+    private async void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is PublishViewModel vm)
+        {
+            await vm.LoadVideosCommand.ExecuteAsync(null);
+        }
+    }
 }

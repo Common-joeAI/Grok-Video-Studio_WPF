@@ -16,4 +16,12 @@ public partial class HistoryPage : Page
         InitializeComponent();
         DataContext = App.Services.GetRequiredService<HistoryViewModel>();
     }
+
+    private async void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is HistoryViewModel vm)
+        {
+            await vm.RefreshCommand.ExecuteAsync(null);
+        }
+    }
 }

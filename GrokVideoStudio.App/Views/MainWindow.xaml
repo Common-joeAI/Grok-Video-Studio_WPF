@@ -18,56 +18,37 @@
 
     <!--
       WPF rebuild of the Python/PySide6 Grok-Video-Studio app.
-      Full feature parity: Generate → History → Player → Stitch → Publish → Activity → Settings
-
-      Icon: app.ico is a custom film/play themed icon — appears in taskbar, title bar,
-      and Alt+Tab. All navigation and page icons use Segoe Fluent Icons via WPF UI SymbolIcon.
+      NavigationView manages both the nav pane and content area automatically.
     -->
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <ui:NavigationView
+        x:Name="RootNavigation"
+        PaneDisplayMode="Left"
+        IsPaneOpen="True">
 
-        <ui:TitleBar Grid.Row="0" Title="Grok Video Studio">
-            <ui:TitleBar.Header>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
-                    <!-- App logo icon in the title bar -->
-                    <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
-                    <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
-                </StackPanel>
-            </ui:TitleBar.Header>
-        </ui:TitleBar>
+        <ui:NavigationView.TitleBar>
+            <ui:TitleBar Title="Grok Video Studio">
+                <ui:TitleBar.Header>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
+                        <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
+                        <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ui:TitleBar.Header>
+            </ui:TitleBar>
+        </ui:NavigationView.TitleBar>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <ui:NavigationView.MenuItems>
+            <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Filmstrip24}" />
+            <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
+            <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />
+            <ui:NavigationViewItem Content="Stitch" TargetPageType="{x:Type pages:StitchPage}" Icon="{ui:SymbolIcon Cut24}" />
+            <ui:NavigationViewItem Content="Publish" TargetPageType="{x:Type pages:PublishPage}" Icon="{ui:SymbolIcon Share24}" />
+        </ui:NavigationView.MenuItems>
 
-            <ui:NavigationView
-                x:Name="RootNavigation"
-                Grid.Column="0"
-                PaneDisplayMode="Left"
-                Header="Grok Video Studio"
-                IsPaneOpen="True">
-                <ui:NavigationView.MenuItems>
-                    <!-- Each nav item uses a Segoe Fluent Icon glyph -->
-                    <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Film24}" />
-                    <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
-                    <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />
-                    <ui:NavigationViewItem Content="Stitch" TargetPageType="{x:Type pages:StitchPage}" Icon="{ui:SymbolIcon Cut24}" />
-                    <ui:NavigationViewItem Content="Publish" TargetPageType="{x:Type pages:PublishPage}" Icon="{ui:SymbolIcon Share24}" />
-                </ui:NavigationView.MenuItems>
-                <ui:NavigationView.FooterMenuItems>
-                    <ui:NavigationViewItem Content="Activity Log" TargetPageType="{x:Type pages:ActivityLogPage}" Icon="{ui:SymbolIcon History24}" />
-                    <ui:NavigationViewItem Content="Settings" TargetPageType="{x:Type pages:SettingsPage}" Icon="{ui:SymbolIcon Settings24}" />
-                </ui:NavigationView.FooterMenuItems>
-            </ui:NavigationView>
-
-            <ContentPresenter x:Name="RootContentPresenter" Grid.Column="1" Margin="0" />
-        </Grid>
-    </Grid>
+        <ui:NavigationView.FooterMenuItems>
+            <ui:NavigationViewItem Content="Activity Log" TargetPageType="{x:Type pages:ActivityLogPage}" Icon="{ui:SymbolIcon History24}" />
+            <ui:NavigationViewItem Content="Settings" TargetPageType="{x:Type pages:SettingsPage}" Icon="{ui:SymbolIcon Settings24}" />
+        </ui:NavigationView.FooterMenuItems>
+    </ui:NavigationView>
 
 </ui:FluentWindow>

@@ -41,7 +41,7 @@
         <!-- Log List (Card) -->
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" CornerRadius="8" Padding="4">
             <ListBox x:Name="LogEntriesListBox"
-                     ItemsSource="{Binding LogEntries}"
+                     ItemsSource="{Binding Entries}"
                      BorderThickness="0"
                      Background="Transparent"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -74,7 +74,7 @@
 
                             <!-- Level -->
                             <Border Grid.Column="1" 
-                                    Background="{Binding ColorBrush}" 
+                                    Background="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" 
                                     CornerRadius="4" 
                                     Padding="6,2" 
                                     HorizontalAlignment="Left" 
@@ -101,12 +101,4 @@
             </ListBox>
         </Border>
     </Grid>
-
-    <Page.Resources>
-        <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
-    </Page.Resources>
 </Page>
