@@ -45,6 +45,25 @@
                         </StackPanel>
                         <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding GrokVideoModel}" Margin="0,0,0,10" />
                     </Grid>
+                    <!-- Test row -->
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                   Command="{Binding TestGrokKeyCommand}" Padding="16,6">
+                            <ui:Button.Style>
+                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTestingGrok}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                         Visibility="{Binding IsTestingGrok, Converter={StaticResource CustomBoolToVisConverter}}" />
+                        <TextBlock Text="{Binding GrokTestResult}" VerticalAlignment="Center" FontSize="13"
+                                   Opacity="0.85" TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -63,6 +82,25 @@
                         </StackPanel>
                         <ui:TextBox Grid.Column="1" Text="{Binding OpenAiChatModel}" />
                     </Grid>
+                    <!-- Test row -->
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                   Command="{Binding TestOpenAiKeyCommand}" Padding="16,6">
+                            <ui:Button.Style>
+                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTestingOpenAi}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                         Visibility="{Binding IsTestingOpenAi, Converter={StaticResource CustomBoolToVisConverter}}" />
+                        <TextBlock Text="{Binding OpenAiTestResult}" VerticalAlignment="Center" FontSize="13"
+                                   Opacity="0.85" TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -96,6 +134,25 @@
                         <TextBlock Text="Seedance API" FontWeight="Medium" />
                     </StackPanel>
                     <ui:PasswordBox Password="{Binding SeedanceApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
+                    <!-- Test row -->
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                   Command="{Binding TestSeedanceKeyCommand}" Padding="16,6">
+                            <ui:Button.Style>
+                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTestingSeedance}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                         Visibility="{Binding IsTestingSeedance, Converter={StaticResource CustomBoolToVisConverter}}" />
+                        <TextBlock Text="{Binding SeedanceTestResult}" VerticalAlignment="Center" FontSize="13"
+                                   Opacity="0.85" TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

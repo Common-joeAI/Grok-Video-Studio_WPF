@@ -109,6 +109,9 @@ public partial class SettingsViewModel : ObservableObject
 
     private void LoadFromSettings()
     {
+        _isLoading = true;
+        try
+        {
         var s = _settingsService.LoadSettings();
         var hasKeys = !string.IsNullOrEmpty(s.GrokApiKey) || !string.IsNullOrEmpty(s.OpenAiApiKey) || !string.IsNullOrEmpty(s.SeedanceApiKey);
         _activityLog.Log(hasKeys ? "Settings loaded from disk (API keys present)" : "Settings loaded from disk (no API keys configured)", Microsoft.Extensions.Logging.LogLevel.Information);
@@ -159,6 +162,11 @@ public partial class SettingsViewModel : ObservableObject
         Theme = s.Theme;
         PollIntervalSeconds = s.PollIntervalSeconds;
         MaxPollAttempts = s.MaxPollAttempts;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private AppSettings BuildSettings() => new()
@@ -475,20 +483,131 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+
+    // ── API Key Test Results ────────────────────────────────────────────────────
+    [ObservableProperty] private string _grokTestResult = string.Empty;
+    [ObservableProperty] private string _openAiTestResult = string.Empty;
+    [ObservableProperty] private string _seedanceTestResult = string.Empty;
+    [ObservableProperty] private bool _isTestingGrok;
+    [ObservableProperty] private bool _isTestingOpenAi;
+    [ObservableProperty] private bool _isTestingSeedance;
+
+    [RelayCommand]
+    private async Task TestGrokKeyAsync()
+    {
+        if (string.IsNullOrWhiteSpace(GrokApiKey)) { GrokTestResult = "✗ No key entered"; return; }
+        IsTestingGrok = true;
+        GrokTestResult = "Testing…";
+        try
+        {
+            using var http = new System.Net.Http.HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", GrokApiKey);
+            http.Timeout = TimeSpan.FromSeconds(10);
+            // Simple models list call — no tokens consumed
+            var resp = await http.GetAsync("https://api.x.ai/v1/models");
+            if (resp.IsSuccessStatusCode)
+            {
+                GrokTestResult = "✓ Key valid — xAI API reachable";
+                _activityLog.Log("xAI Grok API key test PASSED", LogLevel.Information);
+            }
+            else
+            {
+                GrokTestResult = $"✗ {(int)resp.StatusCode} {resp.ReasonPhrase}";
+                _activityLog.Log($"xAI Grok API key test FAILED: {(int)resp.StatusCode} {resp.ReasonPhrase}", LogLevel.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            GrokTestResult = $"✗ {ex.Message}";
+            _activityLog.Log($"xAI Grok API key test ERROR: {ex.Message}", LogLevel.Error);
+        }
+        finally { IsTestingGrok = false; }
+    }
+
+    [RelayCommand]
+    private async Task TestOpenAiKeyAsync()
+    {
+        if (string.IsNullOrWhiteSpace(OpenAiApiKey)) { OpenAiTestResult = "✗ No key entered"; return; }
+        IsTestingOpenAi = true;
+        OpenAiTestResult = "Testing…";
+        try
+        {
+            using var http = new System.Net.Http.HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", OpenAiApiKey);
+            http.Timeout = TimeSpan.FromSeconds(10);
+            var resp = await http.GetAsync("https://api.openai.com/v1/models");
+            if (resp.IsSuccessStatusCode)
+            {
+                OpenAiTestResult = "✓ Key valid — OpenAI API reachable";
+                _activityLog.Log("OpenAI API key test PASSED", LogLevel.Information);
+            }
+            else
+            {
+                OpenAiTestResult = $"✗ {(int)resp.StatusCode} {resp.ReasonPhrase}";
+                _activityLog.Log($"OpenAI API key test FAILED: {(int)resp.StatusCode} {resp.ReasonPhrase}", LogLevel.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            OpenAiTestResult = $"✗ {ex.Message}";
+            _activityLog.Log($"OpenAI API key test ERROR: {ex.Message}", LogLevel.Error);
+        }
+        finally { IsTestingOpenAi = false; }
+    }
+
+    [RelayCommand]
+    private async Task TestSeedanceKeyAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SeedanceApiKey)) { SeedanceTestResult = "✗ No key entered"; return; }
+        IsTestingSeedance = true;
+        SeedanceTestResult = "Testing…";
+        try
+        {
+            using var http = new System.Net.Http.HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", SeedanceApiKey);
+            http.Timeout = TimeSpan.FromSeconds(10);
+            // Seedance uses ByteDance API
+            var resp = await http.GetAsync("https://ark.cn-beijing.volces.com/api/v3/models");
+            if (resp.IsSuccessStatusCode)
+            {
+                SeedanceTestResult = "✓ Key valid — Seedance API reachable";
+                _activityLog.Log("Seedance API key test PASSED", LogLevel.Information);
+            }
+            else
+            {
+                SeedanceTestResult = $"✗ {(int)resp.StatusCode} {resp.ReasonPhrase}";
+                _activityLog.Log($"Seedance API key test FAILED: {(int)resp.StatusCode} {resp.ReasonPhrase}", LogLevel.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            SeedanceTestResult = $"✗ {ex.Message}";
+            _activityLog.Log($"Seedance API key test ERROR: {ex.Message}", LogLevel.Error);
+        }
+        finally { IsTestingSeedance = false; }
+    }
+
     // ── Auto-save on key field changes ─────────────────────────────────────────
     // CommunityToolkit.Mvvm calls these partials whenever the backing property changes.
     // We debounce slightly (300ms) so rapid keystrokes don't hammer disk.
 
     private System.Threading.Timer? _autoSaveTimer;
+    private bool _isLoading;  // suppresses auto-save during LoadFromSettings
 
     private void ScheduleAutoSave()
     {
-        // Cancel any pending save and restart the 600ms timer
-        _autoSaveTimer?.Change(600, System.Threading.Timeout.Infinite);
-        _autoSaveTimer ??= new System.Threading.Timer(
-            _ => System.Windows.Application.Current?.Dispatcher.InvokeAsync(async () => await SaveAsync()),
-            null, 600, System.Threading.Timeout.Infinite);
-        _autoSaveTimer.Change(600, System.Threading.Timeout.Infinite);
+        if (_isLoading) return;  // don't save while loading initial values
+        // Debounce: restart the 800ms timer on every keystroke, only save once typing stops
+        if (_autoSaveTimer is null)
+        {
+            _autoSaveTimer = new System.Threading.Timer(
+                _ => System.Windows.Application.Current?.Dispatcher.InvokeAsync(async () => await SaveAsync()),
+                null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+        }
+        _autoSaveTimer.Change(800, System.Threading.Timeout.Infinite);
     }
 
     partial void OnGrokApiKeyChanged(string value)         { _activityLog.Log("xAI Grok API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
