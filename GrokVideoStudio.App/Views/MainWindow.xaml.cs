@@ -8,7 +8,12 @@ namespace GrokVideoStudio.App.Views;
 /// <summary>
 /// Main window code-behind.
 /// WPF UI NavigationView handles page routing automatically via TargetPageType.
-/// We just resolve the ViewModel from DI and set it as DataContext.
+/// Each page has a parameterless constructor that resolves its ViewModel from
+/// the global App.Services DI container.
+///
+/// FIX: Removed direct Navigate call — WPF UI NavigationView auto-navigates to
+/// the first menu item on load. Explicit navigation before the window is fully
+/// rendered can cause null reference exceptions.
 /// </summary>
 public partial class MainWindow : FluentWindow
 {
@@ -19,8 +24,8 @@ public partial class MainWindow : FluentWindow
         // Resolve the main ViewModel from DI
         DataContext = services.GetRequiredService<MainViewModel>();
 
-        // Set up cached page navigation (WPF UI handles this via TargetPageType).
-        // Each page resolves its own ViewModel from the global container in its constructor.
-        RootNavigation.Navigate(typeof(Views.Pages.GeneratePage));
+        // WPF UI NavigationView auto-selects the first menu item.
+        // No need to manually navigate — the first NavigationViewItem
+        // (Generate) is selected automatically when the window loads.
     }
 }

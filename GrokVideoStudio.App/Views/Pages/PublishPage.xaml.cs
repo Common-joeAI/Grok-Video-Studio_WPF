@@ -5,17 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GrokVideoStudio.App.Views.Pages;
 
+/// <summary>
+/// Publish page — resolves its ViewModel from the global DI container.
+/// FIX: Parameterless constructor for WPF UI NavigationView compatibility.
+/// </summary>
 public partial class PublishPage : Page
 {
-    public PublishPage(IServiceProvider services)
+    public PublishPage()
     {
         InitializeComponent();
-        DataContext = services.GetRequiredService<PublishViewModel>();
-    }
-
-    private async void Page_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is PublishViewModel vm)
-            await vm.LoadVideosCommand.ExecuteAsync(null);
+        DataContext = App.Services.GetRequiredService<PublishViewModel>();
     }
 }

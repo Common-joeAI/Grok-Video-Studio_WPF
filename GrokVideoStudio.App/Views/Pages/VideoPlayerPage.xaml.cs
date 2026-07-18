@@ -13,6 +13,9 @@ namespace GrokVideoStudio.App.Views.Pages;
 /// Code-behind for the VideoPlayerPage.xaml.
 /// Handles high-performance media timeline updates, seeking logic, and seamless
 /// transition of MediaElement to and from a borderless fullscreen container.
+///
+/// FIX: Parameterless constructor for WPF UI NavigationView compatibility.
+/// Resolves ViewModel from App.Services instead of constructor injection.
 /// </summary>
 public partial class VideoPlayerPage : Page
 {
@@ -24,11 +27,11 @@ public partial class VideoPlayerPage : Page
     private Window? _fullscreenWindow;
     private Grid? _originalParent;
 
-    public VideoPlayerPage(IServiceProvider services)
+    public VideoPlayerPage()
     {
         InitializeComponent();
 
-        var viewModel = services.GetRequiredService<VideoPlayerViewModel>();
+        var viewModel = App.Services.GetRequiredService<VideoPlayerViewModel>();
         DataContext = viewModel;
 
         // High-performance timer for tracking playback position

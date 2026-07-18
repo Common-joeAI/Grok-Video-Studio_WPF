@@ -19,6 +19,13 @@ namespace GrokVideoStudio.App;
 /// Registers all multi-provider video services, prompt services, social publishing
 /// services, FFmpeg stitch service, activity log, usage stats, download, and
 /// thumbnail services.
+///
+/// FIXES:
+/// 1. Typed HttpClient services registered via AddHttpClient<T>() — the concrete
+///    type is automatically resolvable by DI (no need for separate singleton registrations).
+/// 2. Interface registrations use factory delegates that resolve the typed client
+///    so the IHttpClientFactory pipeline (handlers, timeout, named options) is used.
+/// 3. VideoDownloadService also registered via AddHttpClient (it needs HttpClient).
 /// </summary>
 public partial class App : WpfUiApp
 {
@@ -34,27 +41,31 @@ public partial class App : WpfUiApp
                 services.AddSingleton<IVideoStorageService, VideoStorageService>();
                 services.AddSingleton<IActivityLogService, ActivityLogService>();
                 services.AddSingleton<IUsageStatsService, UsageStatsService>();
-                services.AddSingleton<IVideoDownloadService, VideoDownloadService>();
                 services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
                 services.AddSingleton<IStitchService, FfmpegStitchService>();
 
                 // ── Video generation services (multi-provider) ──
+                // AddHttpClient<T>() registers T as transient with a typed HttpClient.
+                // Factory delegates resolve T from the container so the HttpClient pipeline is used.
                 services.AddHttpClient<GrokVideoService>();
                 services.AddHttpClient<SoraVideoService>();
                 services.AddHttpClient<SeedanceVideoService>();
-                services.AddSingleton<IVideoGenerationService, GrokVideoService>();
-                services.AddSingleton<IVideoGenerationService, SoraVideoService>();
-                services.AddSingleton<IVideoGenerationService, SeedanceVideoService>();
+                services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<GrokVideoService>());
+                services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<SoraVideoService>());
+                services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<SeedanceVideoService>());
                 services.AddSingleton<IVideoGenerationFactory, VideoGenerationFactory>();
 
                 // ── Prompt generation services ──
+                // AddHttpClient<T>() makes the concrete types resolvable for
+                // GenerateViewModel's constructor (which takes concrete types, not interfaces).
                 services.AddHttpClient<GrokPromptService>();
                 services.AddHttpClient<OpenAiPromptService>();
                 services.AddHttpClient<OllamaPromptService>();
-                services.AddSingleton<IPromptGenerationService, GrokPromptService>();
-                services.AddSingleton<GrokPromptService>(sp => sp.GetRequiredService<GrokPromptService>());
-                services.AddSingleton<OpenAiPromptService>(sp => sp.GetRequiredService<OpenAiPromptService>());
-                services.AddSingleton<OllamaPromptService>(sp => sp.GetRequiredService<OllamaPromptService>());
+                services.AddSingleton<IPromptGenerationService>(sp => sp.GetRequiredService<GrokPromptService>());
+
+                // ── Download service (needs HttpClient) ──
+                services.AddHttpClient<VideoDownloadService>();
+                services.AddSingleton<IVideoDownloadService>(sp => sp.GetRequiredService<VideoDownloadService>());
 
                 // ── Social publishing services ──
                 services.AddHttpClient<YouTubeUploadService>();
@@ -76,14 +87,8 @@ public partial class App : WpfUiApp
                 services.AddTransient<ActivityLogViewModel>();
                 services.AddTransient<SettingsViewModel>();
 
-                // ── Pages ──
-                services.AddTransient<GeneratePage>();
-                services.AddTransient<HistoryPage>();
-                services.AddTransient<VideoPlayerPage>();
-                services.AddTransient<StitchPage>();
-                services.AddTransient<PublishPage>();
-                services.AddTransient<ActivityLogPage>();
-                services.AddTransient<SettingsPage>();
+                // ── Pages (not directly used — WPF UI NavigationView creates via
+                //   parameterless ctor and resolves VMs from App.Services) ──
 
                 // ── Main window ──
                 services.AddSingleton<MainWindow>();
@@ -96,6 +101,10 @@ public partial class App : WpfUiApp
             .Build();
     }
 
+    /// <summary>
+    /// Global DI service provider — used by pages that WPF UI NavigationView
+    /// creates via parameterless constructors (which can't use constructor injection).
+    /// </summary>
     public static IServiceProvider Services { get; private set; } = null!;
 
     protected override async void OnStartup(StartupEventArgs e)

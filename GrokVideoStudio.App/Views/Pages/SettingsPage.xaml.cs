@@ -4,11 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GrokVideoStudio.App.Views.Pages;
 
+/// <summary>
+/// Settings page — resolves its ViewModel from the global DI container.
+/// FIX: Parameterless constructor for WPF UI NavigationView compatibility.
+/// </summary>
 public partial class SettingsPage : Page
 {
-    public SettingsPage(IServiceProvider services)
+    public SettingsPage()
     {
         InitializeComponent();
-        DataContext = services.GetRequiredService<SettingsViewModel>();
+        DataContext = App.Services.GetRequiredService<SettingsViewModel>();
     }
 }

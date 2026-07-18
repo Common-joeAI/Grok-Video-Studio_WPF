@@ -5,13 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace GrokVideoStudio.App.Views.Pages;
 
 /// <summary>
-/// Generate page — resolves its ViewModel from the DI container.
+/// Generate page — resolves its ViewModel from the global DI container.
+/// FIX: Uses parameterless constructor because WPF UI NavigationView creates
+/// pages via Activator.CreateInstance (no constructor injection available).
 /// </summary>
 public partial class GeneratePage : Page
 {
-    public GeneratePage(IServiceProvider services)
+    public GeneratePage()
     {
         InitializeComponent();
-        DataContext = services.GetRequiredService<GenerateViewModel>();
+        DataContext = App.Services.GetRequiredService<GenerateViewModel>();
     }
 }
