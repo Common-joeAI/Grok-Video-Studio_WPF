@@ -133,3 +133,59 @@ public class StringToUriConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         Binding.DoNothing;
 }
+
+/// <summary>
+/// Converts a boolean value to Visibility (true=Visible, false=Collapsed).
+/// </summary>
+public class BoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+            return boolValue ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        return System.Windows.Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is System.Windows.Visibility visibility)
+            return visibility == System.Windows.Visibility.Visible;
+        return false;
+    }
+}
+
+/// <summary>
+/// Converts a boolean value to Visibility (true=Collapsed, false=Visible) - inverse of BoolToVisibilityConverter.
+/// </summary>
+public class InverseBoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+            return boolValue ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+        return System.Windows.Visibility.Visible;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is System.Windows.Visibility visibility)
+            return visibility != System.Windows.Visibility.Visible;
+        return false;
+    }
+}
+
+/// <summary>
+/// Converts a non-empty string to Visible, empty/null to Collapsed.
+/// </summary>
+public class StringToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return !string.IsNullOrEmpty(value as string) ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:pages="clr-namespace:GrokVideoStudio.App.Views.Pages"
+    xmlns:helpers="clr-namespace:GrokVideoStudio.App.Helpers"
     Title="Grok Video Studio"
     Width="1280"
     Height="820"
@@ -31,9 +32,9 @@
 
         <ui:TitleBar Grid.Row="0" Title="Grok Video Studio">
             <ui:TitleBar.Header>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" Spacing="8">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
                     <!-- App logo icon in the title bar -->
-                    <ui:Image Icon="pack://application:,,,/app.ico" Width="20" Height="20" />
+                    <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
                     <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
                 </StackPanel>
             </ui:TitleBar.Header>
@@ -65,7 +66,7 @@
                 </ui:NavigationView.FooterMenuItems>
             </ui:NavigationView>
 
-            <ui:NavigationView.ContentPresenter Grid.Column="1" Margin="0" Padding="0" />
+            <ContentPresenter x:Name="RootContentPresenter" Grid.Column="1" Margin="0" />
         </Grid>
     </Grid>
 

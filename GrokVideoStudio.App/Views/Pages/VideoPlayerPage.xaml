@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    xmlns:helpers="clr-namespace:GrokVideoStudio.App.Helpers"
     d:DataContext="{d:DesignInstance Type=vm:VideoPlayerViewModel}"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20" Spacing="4">
+        <StackPanel Grid.Row="0" Margin="0,0,0,20" helpers:StackPanelHelper.Spacing="4">
             <TextBlock Text="Video Player" FontSize="28" FontWeight="SemiBold" />
             <TextBlock Text="Preview and play your generated video files in real-time" FontSize="14" Opacity="0.6" />
         </StackPanel>
@@ -56,7 +57,7 @@
                             </Style>
                         </Border.Style>
                         
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" helpers:StackPanelHelper.Spacing="16">
                             <ui:SymbolIcon Symbol="VideoClip24" FontSize="64" Opacity="0.4" />
                             <TextBlock Text="No Video Loaded" FontSize="18" FontWeight="Medium" Opacity="0.6" HorizontalAlignment="Center" />
                             <ui:Button Content="Open Video File" Icon="{ui:SymbolIcon Open24}" Command="{Binding OpenVideoCommand}" Appearance="Primary" HorizontalAlignment="Center" />
@@ -86,13 +87,13 @@
                     <!-- Control Buttons & Volume -->
                     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
                         <!-- Left controls: Open file -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" HorizontalAlignment="Left">
                             <ui:Button ToolTip="Open Video" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding OpenVideoCommand}" Appearance="Secondary" />
                             <TextBlock Text="{Binding VideoFileName}" VerticalAlignment="Center" FontSize="13" Opacity="0.7" TextTrimming="CharacterEllipsis" MaxWidth="220" />
                         </StackPanel>
 
                         <!-- Middle controls: Play, Pause, Stop -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12" HorizontalAlignment="Center">
                             <ui:Button ToolTip="Stop" Icon="{ui:SymbolIcon Stop24}" Command="{Binding StopCommand}" Appearance="Secondary" Padding="12,8" />
                             <Grid>
                                 <ui:Button ToolTip="Play" Icon="{ui:SymbolIcon Play24}" Command="{Binding PlayCommand}" Appearance="Primary" Padding="16,8" Visibility="{Binding IsPlaying, Converter={StaticResource InverseBoolToVisConverter}}" />
@@ -101,7 +102,7 @@
                         </StackPanel>
 
                         <!-- Right controls: Volume, Mute, Fullscreen -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12" HorizontalAlignment="Right">
                             <ui:Button ToolTip="Mute" Command="{Binding ToggleMuteCommand}" Appearance="Secondary">
                                 <ui:Button.Icon>
                                     <ui:SymbolIcon Style="{StaticResource MuteIconStyle}" />
@@ -125,8 +126,8 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
-        <ui:BoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
-        
+        <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
+
         <Style x:Key="CardBorderStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />

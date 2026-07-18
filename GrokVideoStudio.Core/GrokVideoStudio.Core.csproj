@@ -20,15 +20,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.69.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
   </ItemGroup>
-
-  <!-- YouTube upload requires Google.Apis (add when implementing full upload) -->
-  <!-- <PackageReference Include="Google.Apis.YouTube.v3" Version="1.69.0" /> -->
-  <!-- <PackageReference Include="Google.Apis.Auth" Version="1.69.0" /> -->
 
 </Project>

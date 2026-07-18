@@ -18,6 +18,8 @@
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
+            <!-- Dummy resource to prevent MC1000 error -->
+            <SolidColorBrush x:Key="DummyBrush" Color="Transparent" />
         </ResourceDictionary>
     </Application.Resources>
 

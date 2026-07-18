@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    xmlns:helpers="clr-namespace:GrokVideoStudio.App.Helpers"
     d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,29 +18,29 @@
     -->
 
     <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Spacing="20">
+        <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->
-            <StackPanel Spacing="4">
+            <StackPanel helpers:StackPanelHelper.Spacing="4">
                 <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock Text="Configure API keys, models, and pipeline defaults" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
             <!-- ── xAI Grok ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Key24" FontSize="18" />
                         <TextBlock Text="xAI Grok API" FontWeight="Medium" />
                     </StackPanel>
                     <ui:PasswordBox Password="{Binding GrokApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Chat Model" />
                         </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GrokChatModel}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Video Model" />
                         </StackPanel>
@@ -50,14 +51,14 @@
 
             <!-- ── OpenAI ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Brain24" FontSize="18" />
                         <TextBlock Text="OpenAI API" FontWeight="Medium" />
                     </StackPanel>
                     <ui:PasswordBox Password="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
                     <Grid ColumnDefinitions="Auto,*">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
                             <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Chat Model" />
                         </StackPanel>
@@ -68,18 +69,18 @@
 
             <!-- ── Ollama ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="LocalSwim24" FontSize="18" />
                         <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Link24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="API Base" />
                         </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OllamaApiBase}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Model" />
                         </StackPanel>
@@ -90,8 +91,8 @@
 
             <!-- ── Seedance ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
                         <TextBlock Text="Seedance API" FontWeight="Medium" />
                     </StackPanel>
@@ -101,38 +102,38 @@
 
             <!-- ── Social Publishing ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Share24" FontSize="18" />
                         <TextBlock Text="Social Publishing" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="YouTube API" />
                         </StackPanel>
                         <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding YouTubeApiKey}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="FB Token" />
                         </StackPanel>
                         <ui:PasswordBox Grid.Row="1" Grid.Column="1" Password="{Binding FacebookAccessToken}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="FB Page ID" />
                         </StackPanel>
                         <ui:TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FacebookPageId}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="IG User ID" />
                         </StackPanel>
                         <ui:TextBox Grid.Row="3" Grid.Column="1" Text="{Binding InstagramUserId}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="IG Token" />
                         </StackPanel>
                         <ui:PasswordBox Grid.Row="4" Grid.Column="1" Password="{Binding InstagramAccessToken}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="MusicNote224" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="TikTok Token" />
                         </StackPanel>
@@ -143,12 +144,12 @@
 
             <!-- ── FFmpeg & Tools ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Code24" FontSize="18" />
                         <TextBlock Text="FFmpeg &amp; Tools" FontWeight="Medium" />
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Opacity="0.5" />
                         <TextBlock Text="FFmpeg Path" VerticalAlignment="Center" Width="100" />
                         <ui:TextBox Text="{Binding FfmpegPath}" PlaceholderText="ffmpeg" MinWidth="200" />
@@ -159,33 +160,33 @@
 
             <!-- ── Generation defaults ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="SettingsAdjustments24" FontSize="18" />
                         <TextBlock Text="Generation Defaults" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Timer24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Duration (s)" />
                         </StackPanel>
                         <ui:NumberBox Grid.Row="0" Grid.Column="1" Value="{Binding DefaultDuration}" Minimum="1" Maximum="15" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="AspectRatio24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Aspect Ratio" />
                         </StackPanel>
-                        <ui:ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Resolution24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Resolution" />
                         </StackPanel>
-                        <ui:ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
+                        \u003CComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Clock24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Poll Interval (s)" />
                         </StackPanel>
                         <ui:NumberBox Grid.Row="3" Grid.Column="1" Value="{Binding PollIntervalSeconds}" Minimum="2" Maximum="60" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="ArrowRepeatCount24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Max Poll Attempts" />
                         </StackPanel>
@@ -196,17 +197,17 @@
 
             <!-- ── Theme ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Color24" FontSize="18" />
                         <TextBlock Text="Theme" FontWeight="Medium" />
                     </StackPanel>
-                    <ui:ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
+                    \u003CComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
                 </StackPanel>
             </Border>
 
             <!-- ── Save bar ── -->
-            <StackPanel Orientation="Horizontal" Spacing="16">
+            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="16">
                 <ui:Button Content="Save Settings" Icon="{ui:SymbolIcon Save24}" Appearance="Primary"
                            Command="{Binding SaveCommand}" Padding="24,10" />
                 <ui:Button Content="Clear All Keys" Icon="{ui:SymbolIcon Delete24}" Appearance="Caution"

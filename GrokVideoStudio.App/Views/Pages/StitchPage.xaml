@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    xmlns:helpers="clr-namespace:GrokVideoStudio.App.Helpers"
     d:DataContext="{d:DesignInstance Type=vm:StitchViewModel}"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,25 +18,25 @@
     -->
 
     <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Spacing="20">
+        <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->
-            <StackPanel Spacing="4">
+            <StackPanel helpers:StackPanelHelper.Spacing="4">
                 <TextBlock Text="Stitch Videos" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock Text="Combine clips with crossfade, interpolation, upscale, and music" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
             <!-- ── Available clips ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Library24" FontSize="16" />
                         <TextBlock Text="Available Clips" FontWeight="Medium" />
                     </StackPanel>
                     <ListBox ItemsSource="{Binding AvailableVideos}" Height="180">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                     <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
                                     <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="280" />
                                     <TextBlock Text="{Binding Duration, StringFormat='{}{0}s'}" Opacity="0.5" FontSize="12" />
@@ -51,15 +52,15 @@
 
             <!-- ── Stitch queue ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="List24" FontSize="16" />
                         <TextBlock Text="Stitch Queue" FontWeight="Medium" />
                     </StackPanel>
                     <ListBox ItemsSource="{Binding SelectedVideos}" Height="120">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                     <ui:SymbolIcon Symbol="Film24" FontSize="14" Opacity="0.5" />
                                     <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="260" />
                                     <ui:Button Icon="{ui:SymbolIcon Dismiss24}" Appearance="Caution" FontSize="10" Padding="4,2"
@@ -74,27 +75,27 @@
 
             <!-- ── Pipeline options ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel Spacing="16">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="16">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="SettingsAdjustments24" FontSize="16" />
                         <TextBlock Text="Pipeline Options" FontWeight="Medium" />
                     </StackPanel>
 
                     <CheckBox Content="Crossfade transitions" IsChecked="{Binding EnableCrossfade}" />
 
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <TextBlock Text="Interpolation FPS" VerticalAlignment="Center" Width="140" />
-                        <ui:ComboBox ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding InterpolationFps}" MinWidth="100" />
+                        \u003CComboBox ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding InterpolationFps}" MinWidth="100" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <TextBlock Text="Upscale" VerticalAlignment="Center" Width="140" />
-                        <ui:ComboBox ItemsSource="{Binding UpscalePresets}" SelectedItem="{Binding UpscalePreset}" MinWidth="100" />
+                        \u003CComboBox ItemsSource="{Binding UpscalePresets}" SelectedItem="{Binding UpscalePreset}" MinWidth="100" />
                     </StackPanel>
 
                     <CheckBox Content="GPU encode (NVENC)" IsChecked="{Binding EnableGpuEncode}" />
 
-                    <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <ui:SymbolIcon Symbol="MusicNote224" FontSize="16" VerticalAlignment="Center" />
                         <TextBlock Text="Music mix" VerticalAlignment="Center" Width="120" />
                         <ui:Button Content="Browse…" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding BrowseMusicCommand}" />
@@ -103,7 +104,7 @@
                 </StackPanel>
             </Border>
 
-            <ui:Button Content="Stitch & Export" Icon="{ui:SymbolIcon Cut24}" Appearance="Primary"
+            <ui:Button Content="Stitch &amp; Export" Icon="{ui:SymbolIcon Cut24}" Appearance="Primary"
                        Command="{Binding StitchCommand}" Padding="24,10" />
 
             <TextBlock Text="{Binding StatusMessage}" Opacity="0.7" TextWrapping="Wrap" />
