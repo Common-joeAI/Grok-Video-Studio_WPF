@@ -1,0 +1,110 @@
+<Page
+    x:Class="GrokVideoStudio.App.Views.Pages.ActivityLogPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:ActivityLogViewModel}"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="ActivityLogPage">
+
+    <Grid Margin="32,24,32,32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header and Clear Button -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Activity Log" FontSize="28" FontWeight="SemiBold" />
+                <TextBlock Text="Live system operations, network requests, and compiler messages" FontSize="14" Opacity="0.6" />
+            </StackPanel>
+
+            <ui:Button Grid.Column="1"
+                       Content="Clear Log"
+                       Icon="{ui:SymbolIcon Delete24}"
+                       Command="{Binding ClearCommand}"
+                       Appearance="Secondary"
+                       VerticalAlignment="Bottom" />
+        </Grid>
+
+        <!-- Log List (Card) -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" CornerRadius="8" Padding="4">
+            <ListBox x:Name="LogEntriesListBox"
+                     ItemsSource="{Binding LogEntries}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="8,6" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="Focusable" Value="False" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LogEntryDisplay}">
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Timestamp -->
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss.fff}'}" 
+                                       Foreground="#88FFFFFF" 
+                                       FontFamily="Consolas" 
+                                       FontSize="12" 
+                                       VerticalAlignment="Top" />
+
+                            <!-- Level -->
+                            <Border Grid.Column="1" 
+                                    Background="{Binding ColorBrush}" 
+                                    CornerRadius="4" 
+                                    Padding="6,2" 
+                                    HorizontalAlignment="Left" 
+                                    VerticalAlignment="Top" 
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="{Binding Level}" 
+                                           Foreground="Black" 
+                                           FontWeight="SemiBold" 
+                                           FontSize="10" 
+                                           HorizontalAlignment="Center" />
+                            </Border>
+
+                            <!-- Message -->
+                            <TextBlock Grid.Column="2" 
+                                       Text="{Binding Message}" 
+                                       Foreground="#E0FFFFFF" 
+                                       FontFamily="Consolas" 
+                                       FontSize="12" 
+                                       TextWrapping="Wrap" 
+                                       VerticalAlignment="Top" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Grid>
+
+    <Page.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Page.Resources>
+</Page>

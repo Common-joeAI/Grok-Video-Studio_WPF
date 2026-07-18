@@ -1,0 +1,81 @@
+<Page
+    x:Class="GrokVideoStudio.App.Views.Pages.PublishPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:PublishViewModel}"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Publish"
+    Loaded="Page_Loaded">
+
+    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="720" Spacing="20">
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Publish" FontSize="28" FontWeight="SemiBold" />
+                <TextBlock Text="Upload your video to social platforms" FontSize="14" Opacity="0.6" />
+            </StackPanel>
+
+            <!-- Source video selection -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Source Video" FontWeight="Medium" />
+                    <ui:ComboBox ItemsSource="{Binding AvailableVideos}"
+                                 SelectedItem="{Binding SelectedVideo}"
+                                 DisplayMemberPath="Prompt"
+                                 MinWidth="400" />
+                </StackPanel>
+            </Border>
+
+            <!-- Platform + metadata -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Platform & Metadata" FontWeight="Medium" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="Platform" VerticalAlignment="Center" Width="100" />
+                        <ui:ComboBox ItemsSource="{Binding Platforms}" SelectedItem="{Binding SelectedPlatform}" MinWidth="160" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Title" />
+                        <ui:TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Video title…" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Description" />
+                        <ui:TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="Description…"
+                                    AcceptsReturn="True"
+                                    TextWrapping="Wrap"
+                                    MinHeight="80" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Tags (comma-separated)" />
+                        <ui:TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="tag1, tag2, tag3" />
+                    </StackPanel>
+
+                    <CheckBox Content="Use browser automation (instead of API)" IsChecked="{Binding UseBrowserAutomation}" />
+                </StackPanel>
+            </Border>
+
+            <ui:Button Content="Publish Video" Icon="{ui:SymbolIcon Share24}" Appearance="Primary"
+                       Command="{Binding PublishCommand}" Padding="24,10" />
+
+            <TextBlock Text="{Binding StatusMessage}" Opacity="0.7" TextWrapping="Wrap" />
+
+        </StackPanel>
+    </ScrollViewer>
+
+    <Page.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Page.Resources>
+</Page>

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ───────────────────────────────────────────────────────────────
+       GrokVideoStudio.Core  ·  Domain + Infrastructure Layer
+       
+       .NET 10, zero UI dependencies, fully testable.
+       Contains: models, video generation (Grok/Sora/Seedance), prompt gen,
+       social publishing (YouTube/FB/IG/TikTok), FFmpeg stitch, DPAPI settings,
+       activity log, usage stats (SQLite), download, thumbnails.
+       ─────────────────────────────────────────────────────────────── -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Windows-only for DPAPI (System.Security.Cryptography.ProtectedData) -->
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseWPF>false</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- YouTube upload requires Google.Apis (add when implementing full upload) -->
+  <!-- <PackageReference Include="Google.Apis.YouTube.v3" Version="1.69.0" /> -->
+  <!-- <PackageReference Include="Google.Apis.Auth" Version="1.69.0" /> -->
+
+</Project>

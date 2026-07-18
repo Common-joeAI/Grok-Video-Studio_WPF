@@ -1,0 +1,24 @@
+<Application
+    x:Class="GrokVideoStudio.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    StartupUri="">
+
+    <!--
+      MODERNIZATION: The StartupUri is intentionally empty — we use
+      App.xaml.cs OnStartup to build the DI container and show the
+      main window programmatically (host-first approach).
+    -->
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- WPF UI Fluent theme (replaces MahApps.Metro theme dictionaries) -->
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+</Application>

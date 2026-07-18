@@ -1,0 +1,103 @@
+<Page
+    x:Class="GrokVideoStudio.App.Views.Pages.StitchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:StitchViewModel}"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Stitch"
+    Loaded="Page_Loaded">
+
+    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="720" Spacing="20">
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Stitch Videos" FontSize="28" FontWeight="SemiBold" />
+                <TextBlock Text="Combine clips with crossfade, interpolation, upscale, and music" FontSize="14" Opacity="0.6" />
+            </StackPanel>
+
+            <!-- Available videos -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Available Clips" FontWeight="Medium" />
+                    <ListBox ItemsSource="{Binding AvailableVideos}" Height="180">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="300" />
+                                    <TextBlock Text="{Binding Duration, StringFormat='{}{0}s'}" Opacity="0.5" FontSize="12" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <ui:Button Content="Add Selected" Command="{Binding AddToStitchCommand}"
+                               CommandParameter="{Binding AvailableVideos/SelectedItem, RelativeSource={RelativeSource Self}}"
+                               Appearance="Primary" />
+                </StackPanel>
+            </Border>
+
+            <!-- Selected videos -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Stitch Queue" FontWeight="Medium" />
+                    <ListBox ItemsSource="{Binding SelectedVideos}" Height="120">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Prompt}" TextTrimming="CharacterEllipsis" MaxWidth="280" />
+                                    <ui:Button Content="✕" Appearance="Caution" FontSize="10" Padding="4,2"
+                                               Command="{Binding DataContext.RemoveFromStitchCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                               CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Pipeline options -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Pipeline Options" FontWeight="Medium" />
+
+                    <CheckBox Content="Crossfade transitions" IsChecked="{Binding EnableCrossfade}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="Interpolation FPS" VerticalAlignment="Center" Width="140" />
+                        <ui:ComboBox ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding InterpolationFps}" MinWidth="100" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="Upscale" VerticalAlignment="Center" Width="140" />
+                        <ui:ComboBox ItemsSource="{Binding UpscalePresets}" SelectedItem="{Binding UpscalePreset}" MinWidth="100" />
+                    </StackPanel>
+
+                    <CheckBox Content="GPU encode (NVENC)" IsChecked="{Binding EnableGpuEncode}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="Music mix" VerticalAlignment="Center" Width="140" />
+                        <ui:Button Content="Browse…" Command="{Binding BrowseMusicCommand}" />
+                        <TextBlock Text="{Binding MusicMixPath}" Opacity="0.5" TextTrimming="CharacterEllipsis" MaxWidth="200" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <ui:Button Content="Stitch & Export" Icon="{ui:SymbolIcon Cut24}" Appearance="Primary"
+                       Command="{Binding StitchCommand}" Padding="24,10" />
+
+            <TextBlock Text="{Binding StatusMessage}" Opacity="0.7" TextWrapping="Wrap" />
+
+        </StackPanel>
+    </ScrollViewer>
+
+    <Page.Resources>
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Page.Resources>
+</Page>

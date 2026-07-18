@@ -1,0 +1,146 @@
+<Page
+    x:Class="GrokVideoStudio.App.Views.Pages.VideoPlayerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:GrokVideoStudio.App.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:VideoPlayerViewModel}"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="VideoPlayerPage">
+
+    <Grid Margin="32,24,32,32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20" Spacing="4">
+            <TextBlock Text="Video Player" FontSize="28" FontWeight="SemiBold" />
+            <TextBlock Text="Preview and play your generated video files in real-time" FontSize="14" Opacity="0.6" />
+        </StackPanel>
+
+        <!-- Player Container -->
+        <Grid Grid.Row="1" RowDefinitions="*,Auto">
+            
+            <!-- Video Display Area (Card) -->
+            <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" CornerRadius="8" Background="Black" ClipToBounds="True" Margin="0,0,0,16">
+                <Grid x:Name="PlayerDisplayGrid">
+                    <!-- MediaElement for playback -->
+                    <MediaElement x:Name="VideoMediaElement"
+                                  LoadedBehavior="Manual"
+                                  UnloadedBehavior="Stop"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Volume="{Binding Volume, Mode=TwoWay}"
+                                  IsMuted="{Binding IsMuted, Mode=TwoWay}"
+                                  MediaOpened="VideoMediaElement_MediaOpened"
+                                  MediaEnded="VideoMediaElement_MediaEnded" />
+
+                    <!-- Overlays: Empty state or loading -->
+                    <Border x:Name="NoVideoOverlay" Background="#CC000000">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding VideoPath}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding VideoPath}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                            <ui:SymbolIcon Symbol="VideoClip24" FontSize="64" Opacity="0.4" />
+                            <TextBlock Text="No Video Loaded" FontSize="18" FontWeight="Medium" Opacity="0.6" HorizontalAlignment="Center" />
+                            <ui:Button Content="Open Video File" Icon="{ui:SymbolIcon Open24}" Command="{Binding OpenVideoCommand}" Appearance="Primary" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Playback Controls (Card) -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="16" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto">
+                    <!-- Timeline Slider & Time Display -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+                        <TextBlock Grid.Column="0" Text="{Binding CurrentTimeText}" VerticalAlignment="Center" Margin="0,0,12,0" FontFamily="Consolas" FontSize="13" />
+                        <Slider x:Name="PositionSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="{Binding Duration}"
+                                Value="{Binding Position, Mode=TwoWay}"
+                                IsMoveToPointEnabled="True"
+                                PreviewMouseDown="PositionSlider_PreviewMouseDown"
+                                PreviewMouseUp="PositionSlider_PreviewMouseUp"
+                                ValueChanged="PositionSlider_ValueChanged" />
+                        <TextBlock Grid.Column="2" Text="{Binding TotalTimeText}" VerticalAlignment="Center" Margin="12,0,0,0" FontFamily="Consolas" FontSize="13" />
+                    </Grid>
+
+                    <!-- Control Buttons & Volume -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
+                        <!-- Left controls: Open file -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+                            <ui:Button ToolTip="Open Video" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding OpenVideoCommand}" Appearance="Secondary" />
+                            <TextBlock Text="{Binding VideoFileName}" VerticalAlignment="Center" FontSize="13" Opacity="0.7" TextTrimming="CharacterEllipsis" MaxWidth="220" />
+                        </StackPanel>
+
+                        <!-- Middle controls: Play, Pause, Stop -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                            <ui:Button ToolTip="Stop" Icon="{ui:SymbolIcon Stop24}" Command="{Binding StopCommand}" Appearance="Secondary" Padding="12,8" />
+                            <Grid>
+                                <ui:Button ToolTip="Play" Icon="{ui:SymbolIcon Play24}" Command="{Binding PlayCommand}" Appearance="Primary" Padding="16,8" Visibility="{Binding IsPlaying, Converter={StaticResource InverseBoolToVisConverter}}" />
+                                <ui:Button ToolTip="Pause" Icon="{ui:SymbolIcon Pause24}" Command="{Binding PauseCommand}" Appearance="Secondary" Padding="16,8" Visibility="{Binding IsPlaying, Converter={StaticResource BoolToVisConverter}}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Right controls: Volume, Mute, Fullscreen -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                            <ui:Button ToolTip="Mute" Command="{Binding ToggleMuteCommand}" Appearance="Secondary">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Style="{StaticResource MuteIconStyle}" />
+                                </ui:Button.Icon>
+                            </ui:Button>
+                            
+                            <Slider x:Name="VolumeSlider"
+                                    Width="100"
+                                    Minimum="0"
+                                    Maximum="1"
+                                    Value="{Binding Volume, Mode=TwoWay}"
+                                    VerticalAlignment="Center" />
+
+                            <ui:Button ToolTip="Toggle Fullscreen" Icon="{ui:SymbolIcon FullScreenMaximize24}" Command="{Binding ToggleFullscreenCommand}" Appearance="Secondary" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <ui:BoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
+        
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <!-- Dynamic Style with DataTriggers for the Mute icon symbol -->
+        <Style x:Key="MuteIconStyle" TargetType="{x:Type ui:SymbolIcon}">
+            <Setter Property="Symbol" Value="Speaker224" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                    <Setter Property="Symbol" Value="SpeakerMute24" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+</Page>
