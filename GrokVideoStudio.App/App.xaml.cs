@@ -19,13 +19,6 @@ namespace GrokVideoStudio.App;
 /// Registers all multi-provider video services, prompt services, social publishing
 /// services, FFmpeg stitch service, activity log, usage stats, download, and
 /// thumbnail services.
-///
-/// FIXES:
-/// 1. Typed HttpClient services registered via AddHttpClient<T>() — the concrete
-///    type is automatically resolvable by DI (no need for separate singleton registrations).
-/// 2. Interface registrations use factory delegates that resolve the typed client
-///    so the IHttpClientFactory pipeline (handlers, timeout, named options) is used.
-/// 3. VideoDownloadService also registered via AddHttpClient (it needs HttpClient).
 /// </summary>
 public partial class App : WpfUiApp
 {
@@ -45,8 +38,6 @@ public partial class App : WpfUiApp
                 services.AddSingleton<IStitchService>(sp => new FfmpegStitchService(sp.GetRequiredService<ISecureSettingsService>()));
 
                 // ── Video generation services (multi-provider) ──
-                // AddHttpClient<T>() registers T as transient with a typed HttpClient.
-                // Factory delegates resolve T from the container so the HttpClient pipeline is used.
                 services.AddHttpClient<GrokVideoService>();
                 services.AddHttpClient<SoraVideoService>();
                 services.AddHttpClient<SeedanceVideoService>();
@@ -56,8 +47,6 @@ public partial class App : WpfUiApp
                 services.AddSingleton<IVideoGenerationFactory, VideoGenerationFactory>();
 
                 // ── Prompt generation services ──
-                // AddHttpClient<T>() makes the concrete types resolvable for
-                // GenerateViewModel's constructor (which takes concrete types, not interfaces).
                 services.AddHttpClient<GrokPromptService>();
                 services.AddHttpClient<OpenAiPromptService>();
                 services.AddHttpClient<OllamaPromptService>();
@@ -74,6 +63,11 @@ public partial class App : WpfUiApp
                 services.AddHttpClient<TikTokUploadService>();
                 services.AddSingleton<ISocialPublishingFactory, SocialPublishingFactory>();
 
+                // ── Audio analysis & chained generation ──
+                services.AddHttpClient<AudioAnalysisService>();
+                services.AddSingleton<IAudioAnalysisService>(sp => sp.GetRequiredService<AudioAnalysisService>());
+                services.AddSingleton<IChainedGenerationService, ChainedGenerationService>();
+
                 // ── Navigation ──
                 services.AddSingleton<INavigationService, NavigationService>();
 
@@ -86,9 +80,7 @@ public partial class App : WpfUiApp
                 services.AddTransient<PublishViewModel>();
                 services.AddTransient<ActivityLogViewModel>();
                 services.AddTransient<SettingsViewModel>();
-
-                // ── Pages (not directly used — WPF UI NavigationView creates via
-                //   parameterless ctor and resolves VMs from App.Services) ──
+                services.AddTransient<ChainGenerationViewModel>();
 
                 // ── Main window ──
                 services.AddSingleton<MainWindow>();
