@@ -125,10 +125,12 @@
                     <!-- Expand/Collapse toggle -->
                     <ui:Button Grid.Column="5" Appearance="Secondary" Padding="8,2"
                                Command="{Binding ToggleExpandedCommand}" ToolTip="Expand/Collapse activity log">
-                        <ui:SymbolIcon Symbol="ChevronUp24" FontSize="14"
-                                       Visibility="{Binding IsExpanded, Converter={StaticResource CustomBoolToVisConverter}}" />
-                        <ui:SymbolIcon Symbol="ChevronDown24" FontSize="14"
-                                       Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
+                        <Grid>
+                            <ui:SymbolIcon Symbol="ChevronUp24" FontSize="14"
+                                           Visibility="{Binding IsExpanded, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            <ui:SymbolIcon Symbol="ChevronDown24" FontSize="14"
+                                           Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}" />
+                        </Grid>
                     </ui:Button>
                 </Grid>
             </Border>
