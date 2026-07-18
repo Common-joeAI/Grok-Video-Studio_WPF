@@ -89,7 +89,7 @@
                     <TextBlock Text="Image Source (Optional)" FontWeight="Medium" />
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <ui:Button Content="Browse Image…" Icon="{ui:SymbolIcon Image24}" Command="{Binding BrowseImageCommand}" />
-                        <ui:Button Content="Continue from Last Frame" Icon="{ui:SymbolIcon Previous24}"
+                        <ui:Button Content="Continue from Last Frame" Icon="{ui:SymbolIcon ArrowPrevious24}"
                                    Command="{Binding ContinueFromLastFrameCommand}" Appearance="Secondary" />
                         <ui:Button Content="Clear" Appearance="Secondary" Command="{Binding ClearImageCommand}" />
                     </StackPanel>

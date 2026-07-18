@@ -129,7 +129,7 @@
                                     Value="{Binding Volume, Mode=TwoWay}"
                                     VerticalAlignment="Center" />
 
-                            <ui:Button ToolTip="Toggle Fullscreen" Icon="{ui:SymbolIcon FullScreenMaximize24}" Command="{Binding ToggleFullscreenCommand}" Appearance="Secondary" />
+                            <ui:Button ToolTip="Toggle Fullscreen" Icon="{ui:SymbolIcon ArrowMaximize24}" Command="{Binding ToggleFullscreenCommand}" Appearance="Secondary" />
                         </StackPanel>
                     </Grid>
                 </Grid>

@@ -49,7 +49,7 @@
                     Visibility="{Binding AudioDrivenMode, Converter={StaticResource ChainBoolToVis}}">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Audio24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="MusicNote124" FontSize="18" />
                         <TextBlock Text="Audio Source" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="*,Auto">

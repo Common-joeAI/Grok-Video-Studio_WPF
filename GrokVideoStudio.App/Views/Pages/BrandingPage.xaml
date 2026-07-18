@@ -34,7 +34,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="PaintBrush24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="Pen24" FontSize="18" />
                         <TextBlock Text="Brand Identity" FontWeight="Medium" />
                     </StackPanel>
                     <ui:TextBox PlaceholderText="Brand name (e.g. My Channel)" Text="{Binding BrandName, UpdateSourceTrigger=PropertyChanged}" />
@@ -127,7 +127,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Adjust24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="Options24" FontSize="18" />
                         <TextBlock Text="Color Grading" FontWeight="Medium" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="16">
@@ -143,7 +143,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Audio24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="MusicNote124" FontSize="18" />
                         <TextBlock Text="Audio Identity" FontWeight="Medium" />
                     </StackPanel>
                     <!-- Intro Audio -->
@@ -173,7 +173,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="FilmClip24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
                         <TextBlock Text="Video Bumpers (Intro/Outro)" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="*,Auto">

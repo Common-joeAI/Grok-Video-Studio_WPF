@@ -96,7 +96,7 @@
                     <CheckBox Content="GPU encode (NVENC)" IsChecked="{Binding EnableGpuEncode}" />
 
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
-                        <ui:SymbolIcon Symbol="MusicNote224" FontSize="16" VerticalAlignment="Center" />
+                        <ui:SymbolIcon Symbol="MusicNote124" FontSize="16" VerticalAlignment="Center" />
                         <TextBlock Text="Music mix" VerticalAlignment="Center" Width="120" />
                         <ui:Button Content="Browse…" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding BrowseMusicCommand}" />
                         <TextBlock Text="{Binding MusicMixPath}" Opacity="0.5" TextTrimming="CharacterEllipsis" MaxWidth="200" />

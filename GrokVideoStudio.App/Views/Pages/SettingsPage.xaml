@@ -53,7 +53,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Brain24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="Lightbulb24" FontSize="18" />
                         <TextBlock Text="OpenAI API" FontWeight="Medium" />
                     </StackPanel>
                     <ui:PasswordBox Password="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
@@ -71,7 +71,7 @@
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Brain24" FontSize="18" />
+                        <ui:SymbolIcon Symbol="Lightbulb24" FontSize="18" />
                         <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
                     </StackPanel>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
@@ -134,7 +134,7 @@
                         </StackPanel>
                         <ui:PasswordBox Grid.Row="4" Grid.Column="1" Password="{Binding InstagramAccessToken}" Margin="0,0,0,10" />
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="MusicNote224" FontSize="14" Opacity="0.5" />
+                            <ui:SymbolIcon Symbol="MusicNote124" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="TikTok Token" />
                         </StackPanel>
                         <ui:PasswordBox Grid.Row="5" Grid.Column="1" Password="{Binding TikTokAccessToken}" Margin="0,0,0,10" />
@@ -172,7 +172,7 @@
                         </StackPanel>
                         <ui:NumberBox Grid.Row="0" Grid.Column="1" Value="{Binding DefaultDuration}" Minimum="1" Maximum="15" Margin="0,0,0,10" />
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="RatioOneToOne24" FontSize="14" Opacity="0.5" />
+                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Aspect Ratio" />
                         </StackPanel>
                         <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
