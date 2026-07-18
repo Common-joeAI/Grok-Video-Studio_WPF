@@ -129,7 +129,7 @@
                             <ui:SymbolIcon Symbol="ChevronUp24" FontSize="14"
                                            Visibility="{Binding IsExpanded, Converter={StaticResource CustomBoolToVisConverter}}" />
                             <ui:SymbolIcon Symbol="ChevronDown24" FontSize="14"
-                                           Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}" />
+                                           Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
                         </Grid>
                     </ui:Button>
                 </Grid>
