@@ -110,6 +110,8 @@ public partial class SettingsViewModel : ObservableObject
     private void LoadFromSettings()
     {
         var s = _settingsService.LoadSettings();
+        var hasKeys = !string.IsNullOrEmpty(s.GrokApiKey) || !string.IsNullOrEmpty(s.OpenAiApiKey) || !string.IsNullOrEmpty(s.SeedanceApiKey);
+        _activityLog.Log(hasKeys ? "Settings loaded from disk (API keys present)" : "Settings loaded from disk (no API keys configured)", Microsoft.Extensions.Logging.LogLevel.Information);
         GrokApiKey = s.GrokApiKey;
         GrokChatModel = s.GrokChatModel;
         GrokVideoModel = s.GrokVideoModel;
