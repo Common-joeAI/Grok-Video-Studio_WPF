@@ -143,11 +143,16 @@ public sealed class AudioAnalysisService : IAudioAnalysisService
         string provider,
         CancellationToken ct)
     {
-        var systemPrompt = $"""You are a creative video director and AI video prompt engineer. The user has a {totalDuration:F1}-second audio track with the concept: "{concept}". You need to create a {clipCount}-scene video where each scene is {clipDuration} seconds long. Each scene should flow naturally into the next as a continuous visual narrative. For each scene, provide:
-1. A detailed, cinematic video generation prompt (visual description only, no audio references)
-2. A mood/atmosphere label (1-3 words)
-
-Return ONLY a JSON array, no markdown, no explanation. Each element: {{"prompt": "...", "mood": "..."}}""";
+        var systemPrompt =
+            "You are a creative video director and AI video prompt engineer. " +
+            $"The user has a {totalDuration:F1}-second audio track with the concept: \"{concept}\". " +
+            $"You need to create a {clipCount}-scene video where each scene is {clipDuration} seconds long. " +
+            "Each scene should flow naturally into the next as a continuous visual narrative. " +
+            "For each scene, provide:\n" +
+            "1. A detailed, cinematic video generation prompt (visual description only, no audio references)\n" +
+            "2. A mood/atmosphere label (1-3 words)\n\n" +
+            "Return ONLY a JSON array, no markdown, no explanation. " +
+            "Each element: {\"prompt\": \"...\", \"mood\": \"...\"}";
 
         var url = provider == "openai"
             ? "https://api.openai.com/v1/chat/completions"

@@ -60,6 +60,7 @@ public sealed record ChainedGenerationRequest
 
     /// <summary>Optional brand settings to apply after stitching.</summary>
     public BrandSettings? Brand { get; init; }
+}
 
 /// <summary>Result of a chained generation run.</summary>
 public sealed record ChainedGenerationResult

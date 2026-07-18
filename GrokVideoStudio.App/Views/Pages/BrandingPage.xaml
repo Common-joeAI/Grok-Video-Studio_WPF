@@ -79,7 +79,7 @@
                     <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" helpers:StackPanelHelper.Spacing="8">
                         <StackPanel Grid.Row="0" Grid.Column="0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Position" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding Positions}" SelectedItem="{Binding LogoPosition}" />
+                            <ComboBox ItemsSource="{Binding Positions}" SelectedItem="{Binding LogoPosition}" />
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Opacity" FontSize="12" Opacity="0.6" />
@@ -109,7 +109,7 @@
                     <Grid ColumnDefinitions="*,*,*,*"> 
                         <StackPanel Grid.Column="0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Position" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding Positions}" SelectedItem="{Binding WatermarkPosition}" />
+                            <ComboBox ItemsSource="{Binding Positions}" SelectedItem="{Binding WatermarkPosition}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="8,0,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Font Size" FontSize="12" Opacity="0.6" />
@@ -132,7 +132,7 @@
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="16">
                         <CheckBox Content="Enable color grading" IsChecked="{Binding EnableColorGrading}" />
-                        <ui:ComboBox ItemsSource="{Binding ColorGrades}" SelectedItem="{Binding ColorGradePreset}"
+                        <ComboBox ItemsSource="{Binding ColorGrades}" SelectedItem="{Binding ColorGradePreset}"
                                      IsEnabled="{Binding EnableColorGrading}" MinWidth="140" />
                     </StackPanel>
                     <TextBlock Text="Cinematic presets applied via FFmpeg curves and eq filters" FontSize="12" Opacity="0.5" />

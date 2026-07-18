@@ -104,23 +104,23 @@
                     <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" helpers:StackPanelHelper.Spacing="8">
                         <StackPanel Grid.Row="0" Grid.Column="0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Provider" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding VideoProviders}" SelectedItem="{Binding SelectedProvider}" />
+                            <ComboBox ItemsSource="{Binding VideoProviders}" SelectedItem="{Binding SelectedProvider}" />
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Model" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}" />
+                            <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}" />
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="2" Margin="8,0,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Clip Duration" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding ClipDurations}" SelectedItem="{Binding ClipDuration}" />
+                            <ComboBox ItemsSource="{Binding ClipDurations}" SelectedItem="{Binding ClipDuration}" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Aspect Ratio" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
+                            <ComboBox ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding AspectRatio}" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,8,0,0" helpers:StackPanelHelper.Spacing="4">
                             <TextBlock Text="Resolution" FontSize="12" Opacity="0.6" />
-                            <ui:ComboBox ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution}" />
+                            <ComboBox ItemsSource="{Binding Resolutions}" SelectedItem="{Binding Resolution}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
