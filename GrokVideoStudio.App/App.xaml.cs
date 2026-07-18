@@ -91,7 +91,7 @@ public partial class App : WpfUiApp
                 services.AddTransient<PublishViewModel>();
                 services.AddTransient<ActivityLogViewModel>();
                 services.AddSingleton<ActivityTrackerViewModel>();
-                services.AddTransient<SettingsViewModel>();
+                services.AddSingleton<SettingsViewModel>();
                 services.AddTransient<ChainGenerationViewModel>();
                 services.AddTransient<BrandingViewModel>();
 

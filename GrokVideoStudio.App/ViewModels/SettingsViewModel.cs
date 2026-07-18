@@ -467,4 +467,34 @@ public partial class SettingsViewModel : ObservableObject
             _logger.LogWarning(ex, "FFmpeg test failed");
         }
     }
+
+    // ── Auto-save on key field changes ─────────────────────────────────────────
+    // CommunityToolkit.Mvvm calls these partials whenever the backing property changes.
+    // We debounce slightly (300ms) so rapid keystrokes don't hammer disk.
+
+    private System.Threading.Timer? _autoSaveTimer;
+
+    private void ScheduleAutoSave()
+    {
+        // Cancel any pending save and restart the 600ms timer
+        _autoSaveTimer?.Change(600, System.Threading.Timeout.Infinite);
+        _autoSaveTimer ??= new System.Threading.Timer(
+            _ => System.Windows.Application.Current?.Dispatcher.InvokeAsync(async () => await SaveAsync()),
+            null, 600, System.Threading.Timeout.Infinite);
+        _autoSaveTimer.Change(600, System.Threading.Timeout.Infinite);
+    }
+
+    partial void OnGrokApiKeyChanged(string value)         => ScheduleAutoSave();
+    partial void OnOpenAiApiKeyChanged(string value)       => ScheduleAutoSave();
+    partial void OnSeedanceApiKeyChanged(string value)     => ScheduleAutoSave();
+    partial void OnGrokChatModelChanged(string value)      => ScheduleAutoSave();
+    partial void OnGrokVideoModelChanged(string value)     => ScheduleAutoSave();
+    partial void OnOllamaApiBaseChanged(string value)      => ScheduleAutoSave();
+    partial void OnOllamaChatModelChanged(string value)    => ScheduleAutoSave();
+    partial void OnFfmpegPathChanged(string value)         => ScheduleAutoSave();
+    partial void OnDefaultAspectRatioChanged(string value) => ScheduleAutoSave();
+    partial void OnDefaultResolutionChanged(string value)  => ScheduleAutoSave();
+    partial void OnDefaultDurationChanged(int value)       => ScheduleAutoSave();
+    partial void OnThemeChanged(string value)              => ScheduleAutoSave();
+
 }
