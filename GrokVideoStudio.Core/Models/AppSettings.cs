@@ -28,13 +28,29 @@ public sealed record AppSettings
     // ── Seedance API ──
     public string SeedanceApiKey { get; init; } = string.Empty;
 
-    // ── Social Publishing ──
+    // ── Social Publishing: OAuth Client Credentials ──
+    // YouTube uses a client_secrets.json file path (Google's convention)
     public string YouTubeApiKey { get; init; } = string.Empty;
+
+    // Facebook OAuth app credentials
+    public string FacebookClientId { get; init; } = string.Empty;
+    public string FacebookClientSecret { get; init; } = string.Empty;
+
+    // Instagram OAuth app credentials (Meta/Facebook app, but separate ID for IG)
+    public string InstagramClientId { get; init; } = string.Empty;
+    public string InstagramClientSecret { get; init; } = string.Empty;
+
+    // TikTok OAuth app credentials
+    public string TikTokClientKey { get; init; } = string.Empty;
+    public string TikTokClientSecret { get; init; } = string.Empty;
+
+    // ── Social Publishing: OAuth Access Tokens (stored after successful auth) ──
     public string FacebookAccessToken { get; init; } = string.Empty;
     public string FacebookPageId { get; init; } = string.Empty;
     public string InstagramUserId { get; init; } = string.Empty;
     public string InstagramAccessToken { get; init; } = string.Empty;
     public string TikTokAccessToken { get; init; } = string.Empty;
+    public string TikTokOpenId { get; init; } = string.Empty;
 
     // ── Generation defaults ──
     public int DefaultDuration { get; init; } = 8;

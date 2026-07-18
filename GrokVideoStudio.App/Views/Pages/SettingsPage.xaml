@@ -12,9 +12,8 @@
     Title="Settings">
 
     <!--
-      Settings page — API keys, models, pipeline defaults, theme.
-      Each section card has a Segoe Fluent Icon in its header.
-      All sensitive keys use PasswordBox (masked) and are stored via DPAPI encryption.
+      Settings page — API keys, OAuth connections, models, pipeline defaults, theme.
+      Social platforms now use browser-based OAuth2 authentication.
     -->
 
     <Grid Margin="32,24,32,32">
@@ -23,7 +22,7 @@
             <!-- ── Header ── -->
             <StackPanel helpers:StackPanelHelper.Spacing="4">
                 <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" />
-                <TextBlock Text="Configure API keys, models, and pipeline defaults" FontSize="14" Opacity="0.6" />
+                <TextBlock Text="Configure API keys, OAuth connections, and pipeline defaults" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
             <!-- ── xAI Grok ── -->
@@ -100,45 +99,136 @@
                 </StackPanel>
             </Border>
 
-            <!-- ── Social Publishing ── -->
+            <!-- ── Social Publishing (OAuth) ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <StackPanel helpers:StackPanelHelper.Spacing="16">
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <ui:SymbolIcon Symbol="Share24" FontSize="18" />
-                        <TextBlock Text="Social Publishing" FontWeight="Medium" />
+                        <TextBlock Text="Social Publishing — OAuth Connections" FontWeight="Medium" />
                     </StackPanel>
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="YouTube Client Secret" />
+                    <TextBlock Text="Register OAuth apps at each platform's developer console, enter the client credentials, then click Connect to authenticate via browser." FontSize="13" Opacity="0.6" TextWrapping="Wrap" />
+
+                    <!-- ── YouTube ── -->
+                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel helpers:StackPanelHelper.Spacing="10">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:SymbolIcon Symbol="Video24" FontSize="16" />
+                                <TextBlock Text="YouTube" FontWeight="SemiBold" />
+                                <!-- Status badge -->
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                </Border>
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsYouTubeConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                </Border>
+                            </StackPanel>
+                            <ui:TextBox Text="{Binding YouTubeApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Path to Google client_secrets.json" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:Button Content="Connect YouTube" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                           Command="{Binding ConnectYouTubeCommand}" Padding="16,6"
+                                <ui:Button Content="Disconnect" Appearance="Caution"
+                                           Command="{Binding DisconnectYouTubeCommand}" Padding="16,6"
+                                           Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                 Visibility="{Binding IsYouTubeConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            </StackPanel>
                         </StackPanel>
-                        <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding YouTubeApiKey}" PlaceholderText="Path to client_secrets.json" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="FB Token" />
+                    </Border>
+
+                    <!-- ── Facebook ── -->
+                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel helpers:StackPanelHelper.Spacing="10">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:SymbolIcon Symbol="Globe24" FontSize="16" />
+                                <TextBlock Text="Facebook" FontWeight="SemiBold" />
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                </Border>
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsFacebookConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                <ui:TextBox Text="{Binding FacebookClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
+                                <ui:PasswordBox Password="{Binding FacebookClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:Button Content="Connect Facebook" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                           Command="{Binding ConnectFacebookCommand}" Padding="16,6" />
+                                <ui:Button Content="Disconnect" Appearance="Caution"
+                                           Command="{Binding DisconnectFacebookCommand}" Padding="16,6"
+                                           Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                 Visibility="{Binding IsFacebookConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            </StackPanel>
                         </StackPanel>
-                        <ui:PasswordBox Grid.Row="1" Grid.Column="1" Password="{Binding FacebookAccessToken}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="FB Page ID" />
+                    </Border>
+
+                    <!-- ── Instagram ── -->
+                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel helpers:StackPanelHelper.Spacing="10">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:SymbolIcon Symbol="Image24" FontSize="16" />
+                                <TextBlock Text="Instagram" FontWeight="SemiBold" />
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                </Border>
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsInstagramConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                <ui:TextBox Text="{Binding InstagramClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
+                                <ui:PasswordBox Password="{Binding InstagramClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:Button Content="Connect Instagram" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                           Command="{Binding ConnectInstagramCommand}" Padding="16,6" />
+                                <ui:Button Content="Disconnect" Appearance="Caution"
+                                           Command="{Binding DisconnectInstagramCommand}" Padding="16,6"
+                                           Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                 Visibility="{Binding IsInstagramConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            </StackPanel>
                         </StackPanel>
-                        <ui:TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FacebookPageId}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="IG User ID" />
+                    </Border>
+
+                    <!-- ── TikTok ── -->
+                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                        <StackPanel helpers:StackPanelHelper.Spacing="10">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:SymbolIcon Symbol="MusicNote124" FontSize="16" />
+                                <TextBlock Text="TikTok" FontWeight="SemiBold" />
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                </Border>
+                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                        Visibility="{Binding IsTikTokConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                <ui:TextBox Text="{Binding TikTokClientKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Key" />
+                                <ui:PasswordBox Password="{Binding TikTokClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Secret" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                <ui:Button Content="Connect TikTok" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                           Command="{Binding ConnectTikTokCommand}" Padding="16,6" />
+                                <ui:Button Content="Disconnect" Appearance="Caution"
+                                           Command="{Binding DisconnectTikTokCommand}" Padding="16,6"
+                                           Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                 Visibility="{Binding IsTikTokConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            </StackPanel>
                         </StackPanel>
-                        <ui:TextBox Grid.Row="3" Grid.Column="1" Text="{Binding InstagramUserId}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Image24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="IG Token" />
-                        </StackPanel>
-                        <ui:PasswordBox Grid.Row="4" Grid.Column="1" Password="{Binding InstagramAccessToken}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="MusicNote124" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="TikTok Token" />
-                        </StackPanel>
-                        <ui:PasswordBox Grid.Row="5" Grid.Column="1" Password="{Binding TikTokAccessToken}" Margin="0,0,0,10" />
-                    </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
 

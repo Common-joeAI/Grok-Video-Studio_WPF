@@ -9,15 +9,17 @@ using Microsoft.Extensions.Logging;
 namespace GrokVideoStudio.App.ViewModels;
 
 /// <summary>
-/// Settings page ViewModel — manages all API keys and defaults.
+/// Settings page ViewModel — manages all API keys, OAuth connections, and defaults.
 /// 
-/// MODERNIZATION: The original Python app stored everything in plaintext JSON.
-/// This .NET version encrypts all keys via DPAPI before writing to disk.
-/// Updated to include all providers and social platforms from the actual repo.
+/// AUTH: Social platforms now support browser-based OAuth2 authentication via
+/// ISocialAuthService. Each platform has a "Connect" button that opens the
+/// browser, captures the callback, and stores the resulting access token.
+/// Connection status is shown as a boolean badge in the UI.
 /// </summary>
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISecureSettingsService _settingsService;
+    private readonly ISocialAuthService _socialAuth;
     private readonly ILogger<SettingsViewModel> _logger;
 
     // ── xAI Grok ──
@@ -36,13 +38,34 @@ public partial class SettingsViewModel : ObservableObject
     // ── Seedance ──
     [ObservableProperty] private string _seedanceApiKey = string.Empty;
 
-    // ── Social ──
-    [ObservableProperty] private string _youTubeApiKey = string.Empty;
+    // ── Social: YouTube ──
+    [ObservableProperty] private string _youTubeApiKey = string.Empty;  // path to client_secrets.json
+    [ObservableProperty] private bool _isYouTubeConnected;
+    [ObservableProperty] private bool _isYouTubeConnecting;
+
+    // ── Social: Facebook OAuth credentials ──
+    [ObservableProperty] private string _facebookClientId = string.Empty;
+    [ObservableProperty] private string _facebookClientSecret = string.Empty;
     [ObservableProperty] private string _facebookAccessToken = string.Empty;
     [ObservableProperty] private string _facebookPageId = string.Empty;
+    [ObservableProperty] private bool _isFacebookConnected;
+    [ObservableProperty] private bool _isFacebookConnecting;
+
+    // ── Social: Instagram OAuth credentials ──
+    [ObservableProperty] private string _instagramClientId = string.Empty;
+    [ObservableProperty] private string _instagramClientSecret = string.Empty;
     [ObservableProperty] private string _instagramUserId = string.Empty;
     [ObservableProperty] private string _instagramAccessToken = string.Empty;
+    [ObservableProperty] private bool _isInstagramConnected;
+    [ObservableProperty] private bool _isInstagramConnecting;
+
+    // ── Social: TikTok OAuth credentials ──
+    [ObservableProperty] private string _tikTokClientKey = string.Empty;
+    [ObservableProperty] private string _tikTokClientSecret = string.Empty;
     [ObservableProperty] private string _tikTokAccessToken = string.Empty;
+    [ObservableProperty] private string _tikTokOpenId = string.Empty;
+    [ObservableProperty] private bool _isTikTokConnected;
+    [ObservableProperty] private bool _isTikTokConnecting;
 
     // ── Generation defaults ──
     [ObservableProperty] private int _defaultDuration = 8;
@@ -70,9 +93,13 @@ public partial class SettingsViewModel : ObservableObject
     public ObservableCollection<int> FpsOptions { get; } = [0, 48, 60];
     public ObservableCollection<string> UpscalePresets { get; } = ["none", "2x", "1080p", "1440p", "4K"];
 
-    public SettingsViewModel(ISecureSettingsService settingsService, ILogger<SettingsViewModel> logger)
+    public SettingsViewModel(
+        ISecureSettingsService settingsService,
+        ISocialAuthService socialAuth,
+        ILogger<SettingsViewModel> logger)
     {
         _settingsService = settingsService;
+        _socialAuth = socialAuth;
         _logger = logger;
         LoadFromSettings();
     }
@@ -88,12 +115,33 @@ public partial class SettingsViewModel : ObservableObject
         OllamaApiBase = s.OllamaApiBase;
         OllamaChatModel = s.OllamaChatModel;
         SeedanceApiKey = s.SeedanceApiKey;
+
+        // YouTube
         YouTubeApiKey = s.YouTubeApiKey;
+        IsYouTubeConnected = !string.IsNullOrEmpty(s.YouTubeApiKey);
+
+        // Facebook
+        FacebookClientId = s.FacebookClientId;
+        FacebookClientSecret = s.FacebookClientSecret;
         FacebookAccessToken = s.FacebookAccessToken;
         FacebookPageId = s.FacebookPageId;
+        IsFacebookConnected = !string.IsNullOrEmpty(s.FacebookAccessToken);
+
+        // Instagram
+        InstagramClientId = s.InstagramClientId;
+        InstagramClientSecret = s.InstagramClientSecret;
         InstagramUserId = s.InstagramUserId;
         InstagramAccessToken = s.InstagramAccessToken;
+        IsInstagramConnected = !string.IsNullOrEmpty(s.InstagramAccessToken);
+
+        // TikTok
+        TikTokClientKey = s.TikTokClientKey;
+        TikTokClientSecret = s.TikTokClientSecret;
         TikTokAccessToken = s.TikTokAccessToken;
+        TikTokOpenId = s.TikTokOpenId;
+        IsTikTokConnected = !string.IsNullOrEmpty(s.TikTokAccessToken);
+
+        // Defaults
         DefaultDuration = s.DefaultDuration;
         DefaultAspectRatio = s.DefaultAspectRatio;
         DefaultResolution = s.DefaultResolution;
@@ -108,43 +156,55 @@ public partial class SettingsViewModel : ObservableObject
         MaxPollAttempts = s.MaxPollAttempts;
     }
 
+    private AppSettings BuildSettings() => new()
+    {
+        GrokApiKey = GrokApiKey,
+        GrokChatModel = GrokChatModel,
+        GrokVideoModel = GrokVideoModel,
+        OpenAiApiKey = OpenAiApiKey,
+        OpenAiChatModel = OpenAiChatModel,
+        OllamaApiBase = OllamaApiBase,
+        OllamaChatModel = OllamaChatModel,
+        SeedanceApiKey = SeedanceApiKey,
+        // YouTube
+        YouTubeApiKey = YouTubeApiKey,
+        // Facebook
+        FacebookClientId = FacebookClientId,
+        FacebookClientSecret = FacebookClientSecret,
+        FacebookAccessToken = FacebookAccessToken,
+        FacebookPageId = FacebookPageId,
+        // Instagram
+        InstagramClientId = InstagramClientId,
+        InstagramClientSecret = InstagramClientSecret,
+        InstagramUserId = InstagramUserId,
+        InstagramAccessToken = InstagramAccessToken,
+        // TikTok
+        TikTokClientKey = TikTokClientKey,
+        TikTokClientSecret = TikTokClientSecret,
+        TikTokAccessToken = TikTokAccessToken,
+        TikTokOpenId = TikTokOpenId,
+        // Defaults
+        DefaultDuration = DefaultDuration,
+        DefaultAspectRatio = DefaultAspectRatio,
+        DefaultResolution = DefaultResolution,
+        EnableCrossfade = EnableCrossfade,
+        InterpolationFps = InterpolationFps,
+        UpscalePreset = UpscalePreset,
+        EnableGpuEncode = EnableGpuEncode,
+        MusicMixPath = MusicMixPath,
+        FfmpegPath = FfmpegPath,
+        Theme = Theme,
+        PollIntervalSeconds = PollIntervalSeconds,
+        MaxPollAttempts = MaxPollAttempts,
+    };
+
     [RelayCommand]
     private async Task SaveAsync()
     {
         IsSaving = true;
         try
         {
-            var settings = new AppSettings
-            {
-                GrokApiKey = GrokApiKey,
-                GrokChatModel = GrokChatModel,
-                GrokVideoModel = GrokVideoModel,
-                OpenAiApiKey = OpenAiApiKey,
-                OpenAiChatModel = OpenAiChatModel,
-                OllamaApiBase = OllamaApiBase,
-                OllamaChatModel = OllamaChatModel,
-                SeedanceApiKey = SeedanceApiKey,
-                YouTubeApiKey = YouTubeApiKey,
-                FacebookAccessToken = FacebookAccessToken,
-                FacebookPageId = FacebookPageId,
-                InstagramUserId = InstagramUserId,
-                InstagramAccessToken = InstagramAccessToken,
-                TikTokAccessToken = TikTokAccessToken,
-                DefaultDuration = DefaultDuration,
-                DefaultAspectRatio = DefaultAspectRatio,
-                DefaultResolution = DefaultResolution,
-                EnableCrossfade = EnableCrossfade,
-                InterpolationFps = InterpolationFps,
-                UpscalePreset = UpscalePreset,
-                EnableGpuEncode = EnableGpuEncode,
-                MusicMixPath = MusicMixPath,
-                FfmpegPath = FfmpegPath,
-                Theme = Theme,
-                PollIntervalSeconds = PollIntervalSeconds,
-                MaxPollAttempts = MaxPollAttempts,
-            };
-
-            await _settingsService.SaveSettingsAsync(settings);
+            await _settingsService.SaveSettingsAsync(BuildSettings());
             StatusMessage = "✓ Settings saved securely (DPAPI encrypted).";
             _logger.LogInformation("Settings saved to DPAPI-encrypted storage.");
         }
@@ -159,15 +219,223 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
+    // ── OAuth Connect Commands ──
+
+    [RelayCommand]
+    private async Task ConnectYouTubeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(YouTubeApiKey))
+        {
+            StatusMessage = "⚠ Set the path to your Google client_secrets.json first.";
+            return;
+        }
+
+        IsYouTubeConnecting = true;
+        StatusMessage = "Opening browser for YouTube authentication…";
+        try
+        {
+            // Save current settings before auth so the token store path is available
+            await _settingsService.SaveSettingsAsync(BuildSettings());
+
+            var result = await _socialAuth.AuthenticateYouTubeAsync(YouTubeApiKey);
+            if (result.Success)
+            {
+                IsYouTubeConnected = true;
+                StatusMessage = "✓ YouTube connected successfully!";
+            }
+            else
+            {
+                StatusMessage = $"✗ YouTube auth failed: {result.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"✗ YouTube auth error: {ex.Message}";
+            _logger.LogError(ex, "YouTube OAuth failed");
+        }
+        finally
+        {
+            IsYouTubeConnecting = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConnectFacebookAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FacebookClientId) || string.IsNullOrWhiteSpace(FacebookClientSecret))
+        {
+            StatusMessage = "⚠ Enter Facebook Client ID and Client Secret first.";
+            return;
+        }
+
+        IsFacebookConnecting = true;
+        StatusMessage = "Opening browser for Facebook authentication…";
+        try
+        {
+            var result = await _socialAuth.AuthenticateFacebookAsync(FacebookClientId, FacebookClientSecret);
+
+            if (result.Success)
+            {
+                FacebookAccessToken = result.AccessToken;
+                if (!string.IsNullOrEmpty(result.UserId))
+                    FacebookPageId = result.UserId;
+                IsFacebookConnected = true;
+
+                // Persist tokens immediately
+                await _settingsService.SaveSettingsAsync(BuildSettings());
+                StatusMessage = $"✓ Facebook connected{(string.IsNullOrEmpty(result.ErrorMessage) ? "!" : $" — {result.ErrorMessage}")}";
+            }
+            else
+            {
+                StatusMessage = $"✗ Facebook auth failed: {result.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"✗ Facebook auth error: {ex.Message}";
+            _logger.LogError(ex, "Facebook OAuth failed");
+        }
+        finally
+        {
+            IsFacebookConnecting = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConnectInstagramAsync()
+    {
+        if (string.IsNullOrWhiteSpace(InstagramClientId) || string.IsNullOrWhiteSpace(InstagramClientSecret))
+        {
+            StatusMessage = "⚠ Enter Instagram Client ID and Client Secret first.";
+            return;
+        }
+
+        IsInstagramConnecting = true;
+        StatusMessage = "Opening browser for Instagram authentication…";
+        try
+        {
+            var result = await _socialAuth.AuthenticateInstagramAsync(InstagramClientId, InstagramClientSecret);
+
+            if (result.Success)
+            {
+                InstagramAccessToken = result.AccessToken;
+                if (!string.IsNullOrEmpty(result.UserId))
+                    InstagramUserId = result.UserId;
+                IsInstagramConnected = true;
+
+                await _settingsService.SaveSettingsAsync(BuildSettings());
+                StatusMessage = "✓ Instagram connected successfully!";
+            }
+            else
+            {
+                StatusMessage = $"✗ Instagram auth failed: {result.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"✗ Instagram auth error: {ex.Message}";
+            _logger.LogError(ex, "Instagram OAuth failed");
+        }
+        finally
+        {
+            IsInstagramConnecting = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConnectTikTokAsync()
+    {
+        if (string.IsNullOrWhiteSpace(TikTokClientKey) || string.IsNullOrWhiteSpace(TikTokClientSecret))
+        {
+            StatusMessage = "⚠ Enter TikTok Client Key and Client Secret first.";
+            return;
+        }
+
+        IsTikTokConnecting = true;
+        StatusMessage = "Opening browser for TikTok authentication…";
+        try
+        {
+            var result = await _socialAuth.AuthenticateTikTokAsync(TikTokClientKey, TikTokClientSecret);
+
+            if (result.Success)
+            {
+                TikTokAccessToken = result.AccessToken;
+                if (!string.IsNullOrEmpty(result.UserId))
+                    TikTokOpenId = result.UserId;
+                IsTikTokConnected = true;
+
+                await _settingsService.SaveSettingsAsync(BuildSettings());
+                StatusMessage = "✓ TikTok connected successfully!";
+            }
+            else
+            {
+                StatusMessage = $"✗ TikTok auth failed: {result.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"✗ TikTok auth error: {ex.Message}";
+            _logger.LogError(ex, "TikTok OAuth failed");
+        }
+        finally
+        {
+            IsTikTokConnecting = false;
+        }
+    }
+
+    // ── Disconnect Commands ──
+
+    [RelayCommand]
+    private async Task DisconnectYouTubeAsync()
+    {
+        IsYouTubeConnected = false;
+        YouTubeApiKey = string.Empty;
+        await _settingsService.SaveSettingsAsync(BuildSettings());
+        StatusMessage = "YouTube disconnected.";
+    }
+
+    [RelayCommand]
+    private async Task DisconnectFacebookAsync()
+    {
+        IsFacebookConnected = false;
+        FacebookAccessToken = string.Empty;
+        FacebookPageId = string.Empty;
+        await _settingsService.SaveSettingsAsync(BuildSettings());
+        StatusMessage = "Facebook disconnected.";
+    }
+
+    [RelayCommand]
+    private async Task DisconnectInstagramAsync()
+    {
+        IsInstagramConnected = false;
+        InstagramAccessToken = string.Empty;
+        InstagramUserId = string.Empty;
+        await _settingsService.SaveSettingsAsync(BuildSettings());
+        StatusMessage = "Instagram disconnected.";
+    }
+
+    [RelayCommand]
+    private async Task DisconnectTikTokAsync()
+    {
+        IsTikTokConnected = false;
+        TikTokAccessToken = string.Empty;
+        TikTokOpenId = string.Empty;
+        await _settingsService.SaveSettingsAsync(BuildSettings());
+        StatusMessage = "TikTok disconnected.";
+    }
+
     [RelayCommand]
     private void ClearAllKeys()
     {
         _settingsService.DeleteSettings();
         GrokApiKey = OpenAiApiKey = SeedanceApiKey = string.Empty;
         YouTubeApiKey = FacebookAccessToken = InstagramAccessToken = TikTokAccessToken = string.Empty;
+        FacebookClientId = FacebookClientSecret = string.Empty;
+        InstagramClientId = InstagramClientSecret = string.Empty;
+        TikTokClientKey = TikTokClientSecret = string.Empty;
+        IsYouTubeConnected = IsFacebookConnected = IsInstagramConnected = IsTikTokConnected = false;
         StatusMessage = "All keys cleared and settings file deleted.";
     }
-
 
     [RelayCommand]
     private async Task TestFfmpegAsync()
