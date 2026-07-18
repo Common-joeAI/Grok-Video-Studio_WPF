@@ -17,7 +17,7 @@
       Icons: platform sections use Segoe Fluent Icons (Globe/Video/Cloud for each platform).
     -->
 
-    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="32,24,32,32">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->
@@ -95,5 +95,5 @@
             <TextBlock Text="{Binding StatusMessage}" Opacity="0.7" TextWrapping="Wrap" />
 
         </StackPanel>
-    </ScrollViewer>
+    </Grid>
 </Page>

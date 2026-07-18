@@ -38,17 +38,7 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
-
-            <!-- ── Fix NavigationView internal Frame scroll conflict ──
-                 WPF UI NavigationView wraps page content in a Frame that has an
-                 implicit ScrollViewer with Auto visibility. This gives pages
-                 unbounded height, so inner ScrollViewers never activate.
-                 Setting Disabled here hands scroll control back to each page. -->
-            <Style TargetType="Frame">
-                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-            </Style>
-        </ResourceDictionary>
+</ResourceDictionary>
     </Application.Resources>
 
 </Application>

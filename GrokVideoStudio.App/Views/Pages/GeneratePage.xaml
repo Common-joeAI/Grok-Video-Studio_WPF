@@ -23,7 +23,7 @@
       - Batch results list
     -->
 
-    <ScrollViewer Padding="32,24,32,32" VerticalScrollBarVisibility="Auto" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="32,24,32,32">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
             <!-- ── Header ── -->
@@ -143,5 +143,5 @@
             </Border>
 
             </StackPanel>
-            </ScrollViewer>
+            </Grid>
         </Page>

@@ -17,11 +17,9 @@
     Icon="pack://application:,,,/app.ico">
 
     <!--
-      WPF UI NavigationView hosts page content in an internal Frame.
-      That Frame has an implicit ScrollViewer that gives pages unbounded height,
-      which prevents inner page ScrollViewers from activating.
-      Fix: an implicit Style for Frame in App.xaml sets ScrollViewer visibility to
-      Disabled, handing scroll responsibility to each page's own ScrollViewer.
+      WPF UI NavigationView has a built-in ScrollViewer in its internal Frame.
+      Pages use plain Grid + StackPanel (no wrapper ScrollViewer) so the
+      NavigationView's built-in scroll handles vertical scrolling naturally.
     -->
 
     <ui:NavigationView
