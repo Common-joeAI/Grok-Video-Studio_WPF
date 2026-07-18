@@ -30,12 +30,14 @@ public partial class PublishViewModel : ObservableObject
     private ObservableCollection<VideoItem> _availableVideos = [];
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PublishCommand))]
     private VideoItem? _selectedVideo;
 
     [ObservableProperty]
     private SocialPlatform _selectedPlatform = SocialPlatform.YouTube;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PublishCommand))]
     private string _title = string.Empty;
 
     [ObservableProperty]
@@ -143,9 +145,11 @@ public partial class PublishViewModel : ObservableObject
                             StatusMessage = "YouTube upload service not available.";
                             return;
                         }
+                        // YouTube requires a Google client secrets JSON file path, not an API key.
+                        // The user provides the path to their OAuth client secrets file in Settings.
                         resultId = await ytService.UploadAsync(
                             videoPath, Title, Description, tagList, CategoryId,
-                            settings.YouTubeApiKey, // client_secret path
+                            settings.YouTubeApiKey, // path to client_secret.json
                             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                                 "GrokVideoStudio", "youtube_token.json"),
                             progress, default);

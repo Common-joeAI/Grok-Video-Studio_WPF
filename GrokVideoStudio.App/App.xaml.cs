@@ -42,7 +42,7 @@ public partial class App : WpfUiApp
                 services.AddSingleton<IActivityLogService, ActivityLogService>();
                 services.AddSingleton<IUsageStatsService, UsageStatsService>();
                 services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
-                services.AddSingleton<IStitchService, FfmpegStitchService>();
+                services.AddSingleton<IStitchService>(sp => new FfmpegStitchService(sp.GetRequiredService<ISecureSettingsService>()));
 
                 // ── Video generation services (multi-provider) ──
                 // AddHttpClient<T>() registers T as transient with a typed HttpClient.

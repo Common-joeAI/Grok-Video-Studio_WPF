@@ -18,6 +18,8 @@ public partial class StitchViewModel : ObservableObject
     private readonly IStitchService _stitchService;
     private readonly IVideoStorageService _storageService;
     private readonly ISecureSettingsService _settingsService;
+    private readonly IVideoDownloadService _downloadService;
+    private readonly IActivityLogService _activityLog;
     private readonly ILogger<StitchViewModel> _logger;
 
     [ObservableProperty]
@@ -58,11 +60,15 @@ public partial class StitchViewModel : ObservableObject
         IStitchService stitchService,
         IVideoStorageService storageService,
         ISecureSettingsService settingsService,
+        IVideoDownloadService downloadService,
+        IActivityLogService activityLog,
         ILogger<StitchViewModel> logger)
     {
         _stitchService = stitchService;
         _storageService = storageService;
         _settingsService = settingsService;
+        _downloadService = downloadService;
+        _activityLog = activityLog;
         _logger = logger;
 
         var s = settingsService.LoadSettings();
@@ -85,14 +91,20 @@ public partial class StitchViewModel : ObservableObject
     private void AddToStitch(VideoItem? item)
     {
         if (item is not null && !SelectedVideos.Contains(item))
+        {
             SelectedVideos.Add(item);
+            StitchCommand.NotifyCanExecuteChanged();
+        }
     }
 
     [RelayCommand]
     private void RemoveFromStitch(VideoItem? item)
     {
         if (item is not null)
+        {
             SelectedVideos.Remove(item);
+            StitchCommand.NotifyCanExecuteChanged();
+        }
     }
 
     [RelayCommand]
@@ -129,17 +141,34 @@ public partial class StitchViewModel : ObservableObject
             MusicMixPath = MusicMixPath
         };
 
-        // Download remote videos first if needed
+        // Ensure all videos are available locally — download remote ones if needed
         var localPaths = new List<string>();
         foreach (var video in SelectedVideos)
         {
             if (!string.IsNullOrEmpty(video.LocalFilePath) && File.Exists(video.LocalFilePath))
+            {
                 localPaths.Add(video.LocalFilePath);
+            }
             else if (!string.IsNullOrEmpty(video.VideoUrl))
             {
-                // Would download from URL in production
-                StatusMessage = $"Would download {video.VideoUrl} — implement download in production.";
-                return;
+                try
+                {
+                    StatusMessage = $"Downloading {video.Prompt}…";
+                    _activityLog.Log($"Downloading remote video for stitch: {video.VideoUrl}", LogLevel.Information);
+                    var downloadDir = Path.Combine(Path.GetTempPath(), "gvs_stitch");
+                    Directory.CreateDirectory(downloadDir);
+                    var downloadedPath = await _downloadService.DownloadAsync(
+                        video.VideoUrl,
+                        downloadDir,
+                        default);
+                    localPaths.Add(downloadedPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to download video for stitch: {Url}", video.VideoUrl);
+                    StatusMessage = $"✗ Download failed: {ex.Message}";
+                    return;
+                }
             }
         }
 
@@ -150,6 +179,7 @@ public partial class StitchViewModel : ObservableObject
             await _stitchService.StitchAsync(localPaths, outputPath, options, progress, default);
             OutputPath = outputPath;
             StatusMessage = $"✓ Stitched to {outputPath}";
+            _activityLog.Log($"Stitched {localPaths.Count} videos to {outputPath}", LogLevel.Information);
 
             // Open in file explorer
             if (File.Exists(outputPath))
@@ -166,6 +196,7 @@ public partial class StitchViewModel : ObservableObject
         {
             _logger.LogError(ex, "Stitch failed");
             StatusMessage = $"✗ Stitch failed: {ex.Message}";
+            _activityLog.Log($"Stitch failed: {ex.Message}", LogLevel.Error);
         }
         finally
         {

@@ -110,9 +110,9 @@
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="YouTube API" />
+                            <TextBlock Text="YouTube Client Secret" />
                         </StackPanel>
-                        <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding YouTubeApiKey}" Margin="0,0,0,10" />
+                        <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding YouTubeApiKey}" PlaceholderText="Path to client_secrets.json" Margin="0,0,0,10" />
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Globe24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="FB Token" />
@@ -180,7 +180,7 @@
                             <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Resolution" />
                         </StackPanel>
-                        \u003CComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Clock24" FontSize="14" Opacity="0.5" />
                             <TextBlock Text="Poll Interval (s)" />
@@ -202,7 +202,7 @@
                         <ui:SymbolIcon Symbol="Color24" FontSize="18" />
                         <TextBlock Text="Theme" FontWeight="Medium" />
                     </StackPanel>
-                    \u003CComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
+                    <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
                 </StackPanel>
             </Border>
 

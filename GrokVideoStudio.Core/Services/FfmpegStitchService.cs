@@ -25,11 +25,34 @@ public interface IStitchService
 
 public sealed class FfmpegStitchService : IStitchService
 {
-    private readonly string _ffmpegPath;
+    private readonly ISecureSettingsService? _settingsService;
 
+    /// <summary>Creates a stitch service with a hardcoded ffmpeg path (legacy).</summary>
     public FfmpegStitchService(string ffmpegPath = "ffmpeg")
     {
-        _ffmpegPath = ffmpegPath;
+        _settingsService = null;
+        FfmpegPath = ffmpegPath;
+    }
+
+    /// <summary>Creates a stitch service that reads ffmpeg path from user settings.</summary>
+    public FfmpegStitchService(ISecureSettingsService settingsService)
+    {
+        _settingsService = settingsService;
+        var s = settingsService.LoadSettings();
+        FfmpegPath = string.IsNullOrEmpty(s.FfmpegPath) ? "ffmpeg" : s.FfmpegPath;
+    }
+
+    /// <summary>Current ffmpeg executable path (resolved from settings or constructor).</summary>
+    public string FfmpegPath { get; private set; }
+
+    /// <summary>Refresh the ffmpeg path from settings (call before each operation).</summary>
+    private void ResolveFfmpegPath()
+    {
+        if (_settingsService is not null)
+        {
+            var s = _settingsService.LoadSettings();
+            FfmpegPath = string.IsNullOrEmpty(s.FfmpegPath) ? "ffmpeg" : s.FfmpegPath;
+        }
     }
 
     public async Task<string> StitchAsync(
@@ -42,6 +65,8 @@ public sealed class FfmpegStitchService : IStitchService
         if (videoPaths.Count == 0)
             throw new ArgumentException("No video paths provided.", nameof(videoPaths));
 
+        ResolveFfmpegPath();
+
         if (videoPaths.Count == 1)
         {
             // Single clip — just copy or transcode with options
@@ -52,15 +77,29 @@ public sealed class FfmpegStitchService : IStitchService
         progress?.Report($"Stitching {videoPaths.Count} clips…");
 
         // Build FFmpeg concat with optional crossfade
-        var args = BuildStitchArguments(videoPaths, outputPath, options);
-        await RunFfmpegAsync(args, progress, ct);
+        string? tempListPath = null;
+        try
+        {
+            var args = BuildStitchArguments(videoPaths, outputPath, options, out tempListPath);
+            await RunFfmpegAsync(args, progress, ct);
 
-        progress?.Report($"✓ Stitched to {outputPath}");
-        return outputPath;
+            progress?.Report($"✓ Stitched to {outputPath}");
+            return outputPath;
+        }
+        finally
+        {
+            // Clean up the temporary concat list file
+            if (tempListPath is not null && File.Exists(tempListPath))
+            {
+                try { File.Delete(tempListPath); }
+                catch { /* best-effort cleanup */ }
+            }
+        }
     }
 
-    private string BuildStitchArguments(IReadOnlyList<string> paths, string output, StitchOptions options)
+    private string BuildStitchArguments(IReadOnlyList<string> paths, string output, StitchOptions options, out string? tempListPath)
     {
+        tempListPath = null;
         var sb = new System.Text.StringBuilder();
 
         // Input files
@@ -82,12 +121,12 @@ public sealed class FfmpegStitchService : IStitchService
         {
             // Simple concat demuxer (no crossfade)
             // Write concat file list
-            var tempList = Path.GetTempFileName();
-            using (var writer = new StreamWriter(tempList))
+            tempListPath = Path.GetTempFileName();
+            using (var writer = new StreamWriter(tempListPath))
                 foreach (var path in paths)
                     writer.WriteLine($"file '{path}'");
             sb.Clear();
-            sb.Append($"-f concat -safe 0 -i \"{tempList}\" ");
+            sb.Append($"-f concat -safe 0 -i \"{tempListPath}\" ");
         }
 
         // Interpolation
@@ -177,7 +216,7 @@ public sealed class FfmpegStitchService : IStitchService
     {
         var psi = new ProcessStartInfo
         {
-            FileName = _ffmpegPath,
+            FileName = FfmpegPath,
             Arguments = args,
             UseShellExecute = false,
             RedirectStandardError = true,
@@ -188,16 +227,21 @@ public sealed class FfmpegStitchService : IStitchService
         using var process = new Process { StartInfo = psi };
         process.Start();
 
-        // Read stderr (FFmpeg progress goes to stderr)
+        // Read both stderr and stdout concurrently to prevent buffer deadlock.
+        // FFmpeg writes progress to stderr, but may also write to stdout.
+        // If we only read stderr, a full stdout buffer would deadlock the process.
         var stderrTask = process.StandardError.ReadToEndAsync(ct);
-        
+        var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);
+
         await process.WaitForExitAsync(ct);
         var stderr = await stderrTask;
+        _ = await stdoutTask; // discard stdout — we only need stderr for error reporting
 
         if (process.ExitCode != 0)
         {
-            progress?.Report($"FFmpeg error: {stderr[..Math.Min(500, stderr.Length)]}");
-            throw new InvalidOperationException($"FFmpeg exited with code {process.ExitCode}: {stderr}");
+            var errMsg = stderr.Length > 500 ? stderr[..500] : stderr;
+            progress?.Report($"FFmpeg error: {errMsg}");
+            throw new InvalidOperationException($"FFmpeg exited with code {process.ExitCode}: {errMsg}");
         }
     }
 }

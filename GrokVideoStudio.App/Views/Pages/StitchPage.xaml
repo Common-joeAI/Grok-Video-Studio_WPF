@@ -33,7 +33,7 @@
                         <ui:SymbolIcon Symbol="Library24" FontSize="16" />
                         <TextBlock Text="Available Clips" FontWeight="Medium" />
                     </StackPanel>
-                    <ListBox ItemsSource="{Binding AvailableVideos}" Height="180">
+                    <ListBox x:Name="AvailableVideosList" ItemsSource="{Binding AvailableVideos}" Height="180">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
@@ -45,7 +45,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <ui:Button Content="Add Selected" Icon="{ui:SymbolIcon Add24}" Command="{Binding AddToStitchCommand}"
-                               CommandParameter="{Binding AvailableVideos/SelectedItem, RelativeSource={RelativeSource Self}}"
+                               CommandParameter="{Binding SelectedItem, ElementName=AvailableVideosList}"
                                Appearance="Primary" />
                 </StackPanel>
             </Border>
@@ -85,12 +85,12 @@
 
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <TextBlock Text="Interpolation FPS" VerticalAlignment="Center" Width="140" />
-                        \u003CComboBox ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding InterpolationFps}" MinWidth="100" />
+                        <ComboBox ItemsSource="{Binding FpsOptions}" SelectedItem="{Binding InterpolationFps}" MinWidth="100" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <TextBlock Text="Upscale" VerticalAlignment="Center" Width="140" />
-                        \u003CComboBox ItemsSource="{Binding UpscalePresets}" SelectedItem="{Binding UpscalePreset}" MinWidth="100" />
+                        <ComboBox ItemsSource="{Binding UpscalePresets}" SelectedItem="{Binding UpscalePreset}" MinWidth="100" />
                     </StackPanel>
 
                     <CheckBox Content="GPU encode (NVENC)" IsChecked="{Binding EnableGpuEncode}" />
