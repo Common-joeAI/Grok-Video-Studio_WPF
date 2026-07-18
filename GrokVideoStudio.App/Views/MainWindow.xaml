@@ -31,7 +31,10 @@
             IsPaneOpen="True">
 
             <ui:NavigationView.TitleBar>
-                <ui:TitleBar Title="Grok Video Studio">
+                <ui:TitleBar Title="Grok Video Studio"
+                        ShowMinimize="True"
+                        ShowMaximize="True"
+                        ShowClose="True">
                     <ui:TitleBar.Header>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
                             <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
