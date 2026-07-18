@@ -11,6 +11,19 @@
     mc:Ignorable="d"
     Title="VideoPlayerPage">
 
+    <Page.Resources>
+        <!-- MuteIconStyle is page-specific (DataTrigger on VM property) -->
+        <Style x:Key="MuteIconStyle" TargetType="{x:Type ui:SymbolIcon}">
+            <Setter Property="Symbol" Value="Speaker224" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                    <Setter Property="Symbol" Value="SpeakerMute24" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
+
     <Grid Margin="32,24,32,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -122,17 +135,4 @@
                 </Grid>
             </Border>
         </Grid>
-    </Grid>
-
-    <Page.Resources>
-        <!-- MuteIconStyle is page-specific (DataTrigger on VM property) -->
-        <Style x:Key="MuteIconStyle" TargetType="{x:Type ui:SymbolIcon}">
-            <Setter Property="Symbol" Value="Speaker224" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsMuted}" Value="True">
-                    <Setter Property="Symbol" Value="SpeakerMute24" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Page.Resources>
-</Page>
+    </Grid></Page>
