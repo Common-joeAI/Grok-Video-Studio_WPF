@@ -20,6 +20,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISecureSettingsService _settingsService;
     private readonly ISocialAuthService _socialAuth;
+    private readonly IActivityLogService _activityLog;
     private readonly ILogger<SettingsViewModel> _logger;
 
     // ── xAI Grok ──
@@ -96,10 +97,12 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(
         ISecureSettingsService settingsService,
         ISocialAuthService socialAuth,
+        IActivityLogService activityLog,
         ILogger<SettingsViewModel> logger)
     {
         _settingsService = settingsService;
         _socialAuth = socialAuth;
+        _activityLog = activityLog;
         _logger = logger;
         LoadFromSettings();
     }
@@ -207,11 +210,13 @@ public partial class SettingsViewModel : ObservableObject
             await _settingsService.SaveSettingsAsync(BuildSettings());
             StatusMessage = "✓ Settings saved securely (DPAPI encrypted).";
             _logger.LogInformation("Settings saved to DPAPI-encrypted storage.");
+            _activityLog.Log("Settings saved (DPAPI encrypted)", Microsoft.Extensions.Logging.LogLevel.Information);
         }
         catch (Exception ex)
         {
             StatusMessage = $"✗ Save failed: {ex.Message}";
             _logger.LogError(ex, "Settings save failed");
+            _activityLog.Log($"Settings save failed: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error);
         }
         finally
         {
@@ -484,9 +489,9 @@ public partial class SettingsViewModel : ObservableObject
         _autoSaveTimer.Change(600, System.Threading.Timeout.Infinite);
     }
 
-    partial void OnGrokApiKeyChanged(string value)         => ScheduleAutoSave();
-    partial void OnOpenAiApiKeyChanged(string value)       => ScheduleAutoSave();
-    partial void OnSeedanceApiKeyChanged(string value)     => ScheduleAutoSave();
+    partial void OnGrokApiKeyChanged(string value)         { _activityLog.Log("xAI Grok API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
+    partial void OnOpenAiApiKeyChanged(string value)       { _activityLog.Log("OpenAI API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
+    partial void OnSeedanceApiKeyChanged(string value)     { _activityLog.Log("Seedance API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
     partial void OnGrokChatModelChanged(string value)      => ScheduleAutoSave();
     partial void OnGrokVideoModelChanged(string value)     => ScheduleAutoSave();
     partial void OnOllamaApiBaseChanged(string value)      => ScheduleAutoSave();
