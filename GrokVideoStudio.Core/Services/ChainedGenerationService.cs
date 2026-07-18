@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using GrokVideoStudio.Core.Models;
 
 namespace GrokVideoStudio.Core.Services;
