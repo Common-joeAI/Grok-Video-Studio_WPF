@@ -5,6 +5,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:pages="clr-namespace:GrokVideoStudio.App.Views.Pages"
     xmlns:helpers="clr-namespace:GrokVideoStudio.App.Helpers"
+    xmlns:services="clr-namespace:GrokVideoStudio.Core.Services;assembly=GrokVideoStudio.Core"
     Title="Grok Video Studio"
     Width="1280"
     Height="820"
@@ -17,9 +18,15 @@
     Icon="pack://application:,,,/app.ico">
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <!-- ── Navigation (main content) ── -->
         <ui:NavigationView
             x:Name="RootNavigation"
+            Grid.Row="0"
             PaneDisplayMode="Left"
             IsPaneOpen="True">
 
@@ -50,8 +57,143 @@
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
 
+        <!-- ── Live Activity Tracker ── -->
+        <Grid Grid.Row="1" x:Name="ActivityTrackerPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ── Collapsed strip (always visible) ── -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Height="32">
+                <Grid Margin="8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Pulse indicator -->
+                    <ui:SymbolIcon Grid.Column="0" Symbol="PresenceAvailable24" FontSize="12" Margin="0,0,8,0"
+                                   Foreground="#4CAF50" VerticalAlignment="Center"
+                                   x:Name="PulseIcon" />
+
+                    <!-- Latest entry timestamp -->
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding LatestEntry.Timestamp, StringFormat='{}{0:HH:mm:ss}', TargetNullValue='—'}"
+                               FontFamily="Consolas" FontSize="11"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0" MinWidth="56" />
+
+                    <!-- Latest entry message -->
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding LatestEntry.Message, TargetNullValue='Ready.'}"
+                               FontFamily="Consolas" FontSize="12"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <!-- Error/Warning counters -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+                        <Border Background="#D32F2F" CornerRadius="8" Padding="6,1"
+                                Visibility="{Binding ErrorCount, Converter={StaticResource CountToVisInvertedConverter}}">
+                            <TextBlock Text="{Binding ErrorCount}" FontSize="10" Foreground="White" FontWeight="Bold" />
+                        </Border>
+                        <Border Background="#F57C00" CornerRadius="8" Padding="6,1" Margin="4,0,0,0"
+                                Visibility="{Binding WarningCount, Converter={StaticResource CountToVisInvertedConverter}}">
+                            <TextBlock Text="{Binding WarningCount}" FontSize="10" Foreground="White" FontWeight="Bold" />
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Clear button -->
+                    <ui:Button Grid.Column="4" Appearance="Secondary" Padding="8,2" Margin="4,0"
+                               Command="{Binding ClearCommand}" ToolTip="Clear activity tracker">
+                        <ui:SymbolIcon Symbol="Delete24" FontSize="14" />
+                    </ui:Button>
+
+                    <!-- Expand/Collapse toggle -->
+                    <ui:Button Grid.Column="5" Appearance="Secondary" Padding="8,2"
+                               Command="{Binding ToggleExpandedCommand}" ToolTip="Expand/Collapse activity log">
+                        <ui:SymbolIcon Symbol="ChevronUp24" FontSize="14"
+                                       Visibility="{Binding IsExpanded, Converter={StaticResource CustomBoolToVisConverter}}" />
+                        <ui:SymbolIcon Symbol="ChevronDown24" FontSize="14"
+                                       Visibility="{Binding IsExpanded, Converter={StaticResource InverseBoolToVisConverter}}" />
+                    </ui:Button>
+                </Grid>
+            </Border>
+
+            <!-- ── Expanded panel (scrollable log) ── -->
+            <Border Grid.Row="1"
+                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Height="200"
+                    Visibility="{Binding IsExpanded, Converter={StaticResource CustomBoolToVisConverter}}">
+                <ListBox x:Name="TrackerLogList"
+                         ItemsSource="{Binding RecentEntries}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="12,2" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Focusable" Value="False" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type services:ActivityEntry}">
+                            <Grid Margin="0,1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Timestamp -->
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss.fff}'}"
+                                           FontFamily="Consolas" FontSize="11"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                           VerticalAlignment="Top" Margin="0,0,12,0" />
+
+                                <!-- Level badge -->
+                                <Border Grid.Column="1"
+                                        Background="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}"
+                                        CornerRadius="3" Padding="5,1"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                                        Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding Level}" FontSize="9" Foreground="White"
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                </Border>
+
+                                <!-- Message -->
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Message}"
+                                           FontFamily="Consolas" FontSize="12"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" VerticalAlignment="Top" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+
         <!-- ── Splash overlay (fades out after first navigation) ── -->
         <Grid x:Name="SplashOverlay"
+              Grid.RowSpan="2"
               Background="#1A1A2E"
               VerticalAlignment="Stretch"
               HorizontalAlignment="Stretch"

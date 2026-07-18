@@ -74,6 +74,23 @@ public class CountToVisibilityConverter : IValueConverter
         Binding.DoNothing;
 }
 
+
+/// <summary>
+/// Inverse of CountToVisibilityConverter — visible when count > 0, collapsed when 0.
+/// </summary>
+public class CountToVisibilityInvertedConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is int count)
+            return count > 0 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        return System.Windows.Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
 /// <summary>
 /// Inverts StringToVisibility — visible when string is null/empty, collapsed when it has content.
 /// </summary>

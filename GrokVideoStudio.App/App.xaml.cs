@@ -90,6 +90,7 @@ public partial class App : WpfUiApp
                 services.AddTransient<StitchViewModel>();
                 services.AddTransient<PublishViewModel>();
                 services.AddTransient<ActivityLogViewModel>();
+                services.AddSingleton<ActivityTrackerViewModel>();
                 services.AddTransient<SettingsViewModel>();
                 services.AddTransient<ChainGenerationViewModel>();
                 services.AddTransient<BrandingViewModel>();

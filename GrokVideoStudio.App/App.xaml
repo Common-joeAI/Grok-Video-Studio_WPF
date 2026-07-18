@@ -24,6 +24,7 @@
             <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter" />
             <helpers:InverseBoolToVisibilityConverter x:Key="InvertBoolToVisConverter" />
             <helpers:CountToVisibilityConverter x:Key="CountToVisConverter" />
+            <helpers:CountToVisibilityInvertedConverter x:Key="CountToVisInvertedConverter" />
             <helpers:StringToVisibilityConverter x:Key="StringToVisConverter" />
             <helpers:InvertStringToVisibilityConverter x:Key="InvertStringToVisConverter" />
             <helpers:StatusToIconConverter x:Key="StatusToIconConverter" />
