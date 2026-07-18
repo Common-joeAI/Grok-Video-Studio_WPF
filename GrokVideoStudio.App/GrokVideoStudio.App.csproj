@@ -57,6 +57,7 @@
     <!-- Application icon file -->
     <None Include="app.ico" Pack="false" />
     <Resource Include="app.ico" />
+    <Resource Include="Assets/splash.png" />
   </ItemGroup>
 
 </Project>

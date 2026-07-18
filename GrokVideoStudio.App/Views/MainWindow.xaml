@@ -16,42 +16,74 @@
     WindowStartupLocation="CenterScreen"
     Icon="pack://application:,,,/app.ico">
 
-    <!--
-      WPF UI NavigationView has a built-in ScrollViewer in its internal Frame.
-      Pages use plain Grid + StackPanel (no wrapper ScrollViewer) so the
-      NavigationView's built-in scroll handles vertical scrolling naturally.
-    -->
+    <Grid>
+        <!-- ── Navigation (main content) ── -->
+        <ui:NavigationView
+            x:Name="RootNavigation"
+            PaneDisplayMode="Left"
+            IsPaneOpen="True">
 
-    <ui:NavigationView
-        x:Name="RootNavigation"
-        PaneDisplayMode="Left"
-        IsPaneOpen="True">
+            <ui:NavigationView.TitleBar>
+                <ui:TitleBar Title="Grok Video Studio">
+                    <ui:TitleBar.Header>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
+                            <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
+                            <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:TitleBar.Header>
+                </ui:TitleBar>
+            </ui:NavigationView.TitleBar>
 
-        <ui:NavigationView.TitleBar>
-            <ui:TitleBar Title="Grok Video Studio">
-                <ui:TitleBar.Header>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0" helpers:StackPanelHelper.Spacing="8">
-                        <Image Source="pack://application:,,,/app.ico" Width="20" Height="20" />
-                        <TextBlock Text="Grok Video Studio" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
-                    </StackPanel>
-                </ui:TitleBar.Header>
-            </ui:TitleBar>
-        </ui:NavigationView.TitleBar>
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Filmstrip24}" />
+                <ui:NavigationViewItem Content="Chain" TargetPageType="{x:Type pages:ChainPage}" Icon="{ui:SymbolIcon Link24}" />
+                <ui:NavigationViewItem Content="Branding" TargetPageType="{x:Type pages:BrandingPage}" Icon="{ui:SymbolIcon Pen24}" />
+                <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
+                <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />
+                <ui:NavigationViewItem Content="Stitch" TargetPageType="{x:Type pages:StitchPage}" Icon="{ui:SymbolIcon Cut24}" />
+                <ui:NavigationViewItem Content="Publish" TargetPageType="{x:Type pages:PublishPage}" Icon="{ui:SymbolIcon Share24}" />
+            </ui:NavigationView.MenuItems>
 
-        <ui:NavigationView.MenuItems>
-            <ui:NavigationViewItem Content="Generate" TargetPageType="{x:Type pages:GeneratePage}" Icon="{ui:SymbolIcon Filmstrip24}" />
-            <ui:NavigationViewItem Content="Chain" TargetPageType="{x:Type pages:ChainPage}" Icon="{ui:SymbolIcon Link24}" />
-            <ui:NavigationViewItem Content="Branding" TargetPageType="{x:Type pages:BrandingPage}" Icon="{ui:SymbolIcon Pen24}" />
-            <ui:NavigationViewItem Content="History" TargetPageType="{x:Type pages:HistoryPage}" Icon="{ui:SymbolIcon Library24}" />
-            <ui:NavigationViewItem Content="Player" TargetPageType="{x:Type pages:VideoPlayerPage}" Icon="{ui:SymbolIcon Video24}" />
-            <ui:NavigationViewItem Content="Stitch" TargetPageType="{x:Type pages:StitchPage}" Icon="{ui:SymbolIcon Cut24}" />
-            <ui:NavigationViewItem Content="Publish" TargetPageType="{x:Type pages:PublishPage}" Icon="{ui:SymbolIcon Share24}" />
-        </ui:NavigationView.MenuItems>
+            <ui:NavigationView.FooterMenuItems>
+                <ui:NavigationViewItem Content="Activity Log" TargetPageType="{x:Type pages:ActivityLogPage}" Icon="{ui:SymbolIcon ArrowCounterclockwise24}" />
+                <ui:NavigationViewItem Content="Settings" TargetPageType="{x:Type pages:SettingsPage}" Icon="{ui:SymbolIcon Settings24}" />
+            </ui:NavigationView.FooterMenuItems>
+        </ui:NavigationView>
 
-        <ui:NavigationView.FooterMenuItems>
-            <ui:NavigationViewItem Content="Activity Log" TargetPageType="{x:Type pages:ActivityLogPage}" Icon="{ui:SymbolIcon ArrowCounterclockwise24}" />
-            <ui:NavigationViewItem Content="Settings" TargetPageType="{x:Type pages:SettingsPage}" Icon="{ui:SymbolIcon Settings24}" />
-        </ui:NavigationView.FooterMenuItems>
-    </ui:NavigationView>
+        <!-- ── Splash overlay (fades out after first navigation) ── -->
+        <Grid x:Name="SplashOverlay"
+              Background="#1A1A2E"
+              VerticalAlignment="Stretch"
+              HorizontalAlignment="Stretch"
+              Opacity="1"
+              Visibility="Visible">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Splash image -->
+            <Image Grid.Row="1"
+                   Source="pack://application:,,,/Assets/splash.png"
+                   Stretch="Uniform"
+                   MaxWidth="720"
+                   MaxHeight="405"
+                   Margin="48" />
+
+            <!-- Loading indicator -->
+            <StackPanel Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,0,0,48">
+                <ui:ProgressRing IsIndeterminate="True" Width="28" Height="28" />
+                <TextBlock Text="Loading…"
+                           FontSize="13"
+                           Opacity="0.6"
+                           HorizontalAlignment="Center"
+                           Margin="0,12,0,0" />
+            </StackPanel>
+        </Grid>
+    </Grid>
 
 </ui:FluentWindow>
