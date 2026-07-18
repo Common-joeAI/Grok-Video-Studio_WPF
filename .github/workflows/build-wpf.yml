@@ -1,0 +1,38 @@
+name: Build WPF (.NET 10)
+
+on:
+  push:
+    branches: [wpf-rebuild]
+  pull_request:
+    branches: [wpf-rebuild]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore GrokVideoStudio/GrokVideoStudio.sln
+
+      - name: Build
+        run: dotnet build GrokVideoStudio/GrokVideoStudio.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test GrokVideoStudio/GrokVideoStudio.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish (win-x64)
+        run: dotnet publish GrokVideoStudio/GrokVideoStudio.App/GrokVideoStudio.App.csproj -c Release -r win-x64 --self-contained false -o publish/win-x64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GrokVideoStudio-WPF-win-x64
+          path: publish/win-x64/
