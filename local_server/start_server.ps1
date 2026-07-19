@@ -6,24 +6,61 @@ Write-Host "  GrokVideoStudio Local Video Generation Server" -ForegroundColor Cy
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# -- Check Python --
-$pythonCmd = Get-Command python -ErrorAction SilentlyContinue
-if (-not $pythonCmd) {
-    Write-Host "[ERROR] Python not found on PATH." -ForegroundColor Red
-    Write-Host "Install Python 3.10+ from https://python.org and check 'Add Python to PATH'."
+# -- Find a compatible Python (3.10-3.13 needed for PyTorch) --
+$pyExe = $null
+$pyVersionStr = $null
+
+# Try py launcher first - it can target specific versions
+foreach ($ver in @("3.12", "3.11", "3.10", "3.13")) {
+    $tryExe = "py -$ver"
+    $tryResult = & cmd /c "$tryExe --version 2>&1"
+    if ($LASTEXITCODE -eq 0 -and $tryResult -match "Python $ver") {
+        $pyExe = $tryExe
+        $pyVersionStr = $tryResult.Trim()
+        Write-Host "Found compatible: $pyVersionStr (via $pyExe)" -ForegroundColor Green
+        break
+    }
+}
+
+# Fall back to plain python
+if (-not $pyExe) {
+    $plainResult = & cmd /c "python --version 2>&1"
+    if ($LASTEXITCODE -eq 0 -and $plainResult -match "Python (\d+)\.(\d+)") {
+        $major = [int]$Matches[1]
+        $minor = [int]$Matches[2]
+        $pyVersionStr = $plainResult.Trim()
+        if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
+            $pyExe = "python"
+            Write-Host "Found compatible: $pyVersionStr" -ForegroundColor Green
+        }
+    }
+}
+
+if (-not $pyExe) {
+    if ($pyVersionStr) {
+        Write-Host "[ERROR] Found $pyVersionStr but PyTorch needs Python 3.10-3.13." -ForegroundColor Red
+        Write-Host "Python 3.14 is too new - PyTorch has no wheels for it yet."
+    } else {
+        Write-Host "[ERROR] No compatible Python found." -ForegroundColor Red
+    }
+    Write-Host ""
+    Write-Host "Install Python 3.12 from: https://www.python.org/downloads/release/python-3120/" -ForegroundColor Yellow
+    Write-Host "Make sure to check 'Add Python to PATH' during install."
+    Write-Host "Then run this script again."
     Read-Host "Press Enter to exit"
     exit 1
 }
 
-$pyVersion = & python --version 2>&1
-Write-Host "Found: $pyVersion"
+# -- Determine CUDA version for PyTorch index URL --
+$cudaUrl = "https://download.pytorch.org/whl/cu124"
+Write-Host "Using PyTorch CUDA index: $cudaUrl"
 Write-Host ""
 
 # -- Create venv on first run --
 $venvActivate = ".venv\Scripts\Activate.ps1"
 if (-not (Test-Path $venvActivate)) {
     Write-Host "[SETUP] First run detected - creating virtual environment..." -ForegroundColor Yellow
-    & python -m venv .venv
+    & cmd /c "$pyExe -m venv .venv"
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] Failed to create virtual environment." -ForegroundColor Red
         Read-Host "Press Enter to exit"
@@ -35,11 +72,11 @@ if (-not (Test-Path $venvActivate)) {
     Write-Host "[SETUP] Upgrading pip..." -ForegroundColor Yellow
     & python -m pip install --upgrade pip
 
-    Write-Host "[SETUP] Installing PyTorch with CUDA 12.4..." -ForegroundColor Yellow
-    & pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+    Write-Host "[SETUP] Installing PyTorch with CUDA..." -ForegroundColor Yellow
+    & pip install torch torchvision --index-url $cudaUrl
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] PyTorch install failed. Check your CUDA version." -ForegroundColor Red
-        Write-Host "For CUDA 12.1: use cu121 instead of cu124 in the URL above."
+        Write-Host "[ERROR] PyTorch install failed." -ForegroundColor Red
+        Write-Host "Try CUDA 12.1: edit this script and change cu124 to cu121"
         Read-Host "Press Enter to exit"
         exit 1
     }
