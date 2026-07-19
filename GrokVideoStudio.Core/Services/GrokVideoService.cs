@@ -174,11 +174,14 @@ public sealed class GrokVideoService : IVideoGenerationService
     /// </summary>
     private static Dictionary<string, object?> BuildPayload(VideoGenerationRequest request)
     {
+        // Confirmed valid fields from xAI Imagine playground:
+        // model, prompt, duration, resolution, image (optional)
         var payload = new Dictionary<string, object?>
         {
             ["model"] = request.Model,
             ["prompt"] = request.Prompt,
             ["duration"] = request.Duration,
+            ["resolution"] = request.Resolution,
         };
 
         if (request.Image is not null)
