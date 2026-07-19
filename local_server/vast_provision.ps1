@@ -75,15 +75,19 @@ function Ensure-VastCli {
     $pyExe = $null
     $pyVer = $null
 
-    # Method 1: Try py launcher with specific versions (suppress errors)
+    # Method 1: Try py launcher with specific versions, resolve actual exe path
     foreach ($ver in @("3.12", "3.11", "3.10", "3.13")) {
         try {
             $testResult = & py -$ver --version 2>&1
             if ($LASTEXITCODE -eq 0 -and $testResult -match "Python") {
-                $pyExe = "py -$ver"
-                $pyVer = $ver
-                Write-Step "Using Python $ver (py launcher) for vast-ai install"
-                break
+                # Resolve the actual python.exe path so & can invoke it directly
+                $resolvedPath = (& py -$ver -c "import sys; print(sys.executable)" 2>$null).Trim()
+                if ($resolvedPath -and (Test-Path $resolvedPath)) {
+                    $pyExe = $resolvedPath
+                    $pyVer = $ver
+                    Write-Step "Using Python $ver ($resolvedPath) for vast-ai install"
+                    break
+                }
             }
         } catch { }
     }
