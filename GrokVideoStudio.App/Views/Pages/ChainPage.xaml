@@ -167,7 +167,7 @@
                            Command="{Binding CancelCommand}"
                            Padding="20,10" />
                 <ui:Button Content="Clear"
-                           Icon="{ui:SymbolIcon Erase24}"
+                           Icon="{ui:SymbolIcon Eraser24}"
                            Command="{Binding ClearChainCommand}"
                            Padding="20,10" />
             </StackPanel>
