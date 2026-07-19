@@ -72,7 +72,8 @@
                                Icon="{ui:SymbolIcon Sparkle24}"
                                Appearance="Primary"
                                Command="{Binding AnalyzeAudioCommand}"
-                               Padding="20,10" />
+                               Padding="20,10"
+                               ToolTip="Load an audio file and enter a concept/theme first" />
                 </StackPanel>
             </Border>
 

@@ -32,9 +32,15 @@ public partial class ChainGenerationViewModel : ObservableObject
     [ObservableProperty] private bool _audioDrivenMode = true;
 
     // ── Audio input ──
-    [ObservableProperty] private string? _audioFilePath;
-    [ObservableProperty] private string _concept = string.Empty;
-    [ObservableProperty] private double _audioDuration;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AnalyzeAudioCommand))]
+    private string? _audioFilePath;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AnalyzeAudioCommand))]
+    private string _concept = string.Empty;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AnalyzeAudioCommand))]
+    private double _audioDuration;
     [ObservableProperty] private int _calculatedClipCount;
 
     // ── Generation settings ──
@@ -52,6 +58,7 @@ public partial class ChainGenerationViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RunChainCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AnalyzeAudioCommand))]
     private bool _isRunning;
 
     [ObservableProperty] private string _statusMessage = "Ready.";
@@ -148,7 +155,13 @@ public partial class ChainGenerationViewModel : ObservableObject
 
     // ── Analyze Audio (generate scene plan) ──────────────────
 
-    [RelayCommand]
+    private bool CanAnalyzeAudio() =>
+        !string.IsNullOrWhiteSpace(AudioFilePath) &&
+        !string.IsNullOrWhiteSpace(Concept) &&
+        AudioDuration > 0 &&
+        !IsRunning;
+
+    [RelayCommand(CanExecute = nameof(CanAnalyzeAudio))]
     private async Task AnalyzeAudioAsync()
     {
         if (string.IsNullOrEmpty(AudioFilePath))
