@@ -1,4 +1,4 @@
-# GrokVideoStudio — Local GPU Video Server Launcher (PowerShell)
+# GrokVideoStudio - Local GPU Video Server Launcher (PowerShell)
 # Run: .\start_server.ps1
 
 Write-Host "===================================================" -ForegroundColor Cyan
@@ -6,7 +6,7 @@ Write-Host "  GrokVideoStudio Local Video Generation Server" -ForegroundColor Cy
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ── Check Python ──
+# -- Check Python --
 $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
 if (-not $pythonCmd) {
     Write-Host "[ERROR] Python not found on PATH." -ForegroundColor Red
@@ -19,10 +19,10 @@ $pyVersion = & python --version 2>&1
 Write-Host "Found: $pyVersion"
 Write-Host ""
 
-# ── Create venv on first run ──
+# -- Create venv on first run --
 $venvActivate = ".venv\Scripts\Activate.ps1"
 if (-not (Test-Path $venvActivate)) {
-    Write-Host "[SETUP] First run detected — creating virtual environment..." -ForegroundColor Yellow
+    Write-Host "[SETUP] First run detected - creating virtual environment..." -ForegroundColor Yellow
     & python -m venv .venv
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] Failed to create virtual environment." -ForegroundColor Red
@@ -58,8 +58,9 @@ if (-not (Test-Path $venvActivate)) {
     & .venv\Scripts\Activate.ps1
 }
 
-# ── Start server ──
+# -- Start server --
 Write-Host ""
-Write-Host "[INFO] Starting LTX-Video server on http://localhost:7860" -ForegroundColor Green
+$url = "http://localhost:7860"
+Write-Host "[INFO] Starting LTX-Video server on $url" -ForegroundColor Green
 Write-Host ""
 & python video_server.py --port 7860
