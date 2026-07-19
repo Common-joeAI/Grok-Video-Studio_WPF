@@ -458,29 +458,48 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task TestFfmpegAsync()
     {
+        var exe = string.IsNullOrEmpty(FfmpegPath) ? "ffmpeg" : FfmpegPath;
+        _activityLog.Log($"Testing FFmpeg at: {exe}", LogLevel.Information);
+
         try
         {
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = string.IsNullOrEmpty(FfmpegPath) ? "ffmpeg" : FfmpegPath,
+                FileName = exe,
                 Arguments = "-version",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 CreateNoWindow = true
             };
             using var proc = System.Diagnostics.Process.Start(psi);
             if (proc is null)
             {
+                _activityLog.Log("FFmpeg test failed: could not start process.", LogLevel.Error);
                 StatusMessage = "✗ Could not start FFmpeg.";
                 return;
             }
             var output = await proc.StandardOutput.ReadToEndAsync();
+            var stderr = await proc.StandardError.ReadToEndAsync();
             await proc.WaitForExitAsync();
-            var firstLine = output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "FFmpeg found.";
-            StatusMessage = $"✓ {firstLine}";
+
+            var combined = string.IsNullOrWhiteSpace(output) ? stderr : output;
+            var firstLine = combined.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "FFmpeg responded.";
+
+            if (proc.ExitCode == 0)
+            {
+                _activityLog.Log($"FFmpeg OK: {firstLine}", LogLevel.Information);
+                StatusMessage = $"✓ {firstLine}";
+            }
+            else
+            {
+                _activityLog.Log($"FFmpeg exited with code {proc.ExitCode}: {firstLine}", LogLevel.Warning);
+                StatusMessage = $"✗ FFmpeg error (exit {proc.ExitCode})";
+            }
         }
         catch (Exception ex)
         {
+            _activityLog.Log($"FFmpeg not found at '{exe}': {ex.Message}", LogLevel.Error);
             StatusMessage = $"✗ FFmpeg not found: {ex.Message}";
             _logger.LogWarning(ex, "FFmpeg test failed");
         }
