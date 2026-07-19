@@ -31,7 +31,11 @@ function Resolve-VastCli([string]$PythonExe = "") {
     if ($PythonExe) {
         $directories = @()
         try { $directories += (& $PythonExe -c "import sysconfig; print(sysconfig.get_path('scripts'))" 2>$null) } catch { }
-        try { $directories += (Join-Path ((& $PythonExe -m site --user-base 2>$null | Select-Object -Last 1).Trim()) "Scripts") } catch { }
+        try {
+            $userBase = (& $PythonExe -m site --user-base 2>$null | Select-Object -Last 1)
+            if ($userBase) { $directories += (Join-Path $userBase.Trim() "Scripts") }
+        } catch { }
+
         foreach ($directory in ($directories | Where-Object { $_ } | Select-Object -Unique)) {
             foreach ($name in @("vastai.exe", "vastai", "vast.exe", "vast")) {
                 $candidate = Join-Path $directory.Trim() $name
@@ -39,6 +43,7 @@ function Resolve-VastCli([string]$PythonExe = "") {
             }
         }
     }
+
     return $null
 }
 
@@ -46,8 +51,11 @@ function Find-Python {
     if (Get-Command py -ErrorAction SilentlyContinue) {
         foreach ($version in @("3.13", "3.12", "3.11", "3.10", "3.14")) {
             try {
-                $path = (& py -$version -c "import sys; print(sys.executable)" 2>$null | Select-Object -Last 1).Trim()
-                if ($path -and (Test-Path $path)) { return $path }
+                $path = (& py -$version -c "import sys; print(sys.executable)" 2>$null | Select-Object -Last 1)
+                if ($path) {
+                    $path = $path.Trim()
+                    if (Test-Path $path) { return $path }
+                }
             } catch { }
         }
     }
@@ -86,6 +94,7 @@ function Ensure-VastCli {
         Write-Warn "Normal install failed; retrying with --user..."
         $output = & $python -m pip install --user --upgrade vastai 2>&1
     }
+
     if ($LASTEXITCODE -ne 0) {
         Write-Err "Could not install Vast.ai CLI."
         $output | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
@@ -110,25 +119,75 @@ function Invoke-Vast([string[]]$Arguments) {
     return $output
 }
 
-function Ensure-ApiKey {
-    if ($VastApiKey) { $env:VAST_API_KEY = $VastApiKey }
-    if ($env:VAST_API_KEY) {
-        Invoke-Vast @("set", "api-key", $env:VAST_API_KEY) | Out-Null
-        Write-OK "Vast.ai API key configured."
-        return $true
+function Normalize-VastApiKey([string]$Key) {
+    if ([string]::IsNullOrWhiteSpace($Key)) { return $null }
+
+    $candidate = $Key.Trim()
+    if ($candidate -match '^(ghp_|github_pat_)') {
+        Write-Err "The value entered is a GitHub token, not a Vast.ai API key."
+        Write-Err "Create a Vast.ai key from the Vast.ai console Keys page."
+        return $null
     }
 
-    & $script:VastCli show user --raw 2>&1 | Out-Null
-    if ($LASTEXITCODE -eq 0) {
+    if ($candidate -notmatch '^[A-Fa-f0-9]{64}$') {
+        Write-Err "Invalid Vast.ai API key format."
+        Write-Err "A Vast.ai API key must contain exactly 64 hexadecimal characters."
+        Write-Err "Do not paste a GitHub, OpenAI, xAI, or other provider token here."
+        return $null
+    }
+
+    return $candidate.ToLowerInvariant()
+}
+
+function Test-VastAuthentication {
+    $output = & $script:VastCli show user --raw 2>&1
+    if ($LASTEXITCODE -eq 0) { return $true }
+
+    $message = ($output -join "`n")
+    if ($message) { Write-Err $message }
+    return $false
+}
+
+function Set-AndVerifyVastKey([string]$Key) {
+    $normalized = Normalize-VastApiKey $Key
+    if (-not $normalized) { return $false }
+
+    $env:VAST_API_KEY = $normalized
+    try {
+        Invoke-Vast @("set", "api-key", $normalized) | Out-Null
+    } catch {
+        Write-Err $_.Exception.Message
+        return $false
+    }
+
+    if (-not (Test-VastAuthentication)) {
+        Write-Err "Vast.ai rejected the API key. Create or reset a key in the Vast.ai console."
+        return $false
+    }
+
+    Write-OK "Vast.ai API key verified."
+    return $true
+}
+
+function Ensure-ApiKey {
+    if (-not [string]::IsNullOrWhiteSpace($VastApiKey)) {
+        return Set-AndVerifyVastKey $VastApiKey
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:VAST_API_KEY)) {
+        return Set-AndVerifyVastKey $env:VAST_API_KEY
+    }
+
+    if (Test-VastAuthentication) {
         Write-OK "Existing Vast.ai authentication is valid."
         return $true
     }
 
+    Write-Warn "No valid Vast.ai API key is configured."
+    Write-Host "  Create one in the Vast.ai console under Keys -> API Keys -> New."
     $key = Read-Host "  Vast.ai API key"
     if (-not $key) { return $false }
-    Invoke-Vast @("set", "api-key", $key) | Out-Null
-    Write-OK "Vast.ai API key configured."
-    return $true
+    return Set-AndVerifyVastKey $key
 }
 
 function Get-Query {
