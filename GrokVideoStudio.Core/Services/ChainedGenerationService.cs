@@ -142,6 +142,23 @@ public sealed class ChainedGenerationService : IChainedGenerationService
             });
 
             // Build the generation request
+            // Try image-to-video continuation from clip 2 onwards, but fall back
+            // to text-to-video if frame extraction or the API rejects the image.
+            ImageSource? continuationImage = null;
+            if (i > 0 && File.Exists(clipPaths[i - 1]))
+            {
+                try
+                {
+                    var dataUri = await ExtractLastFrameAsDataUriAsync(clipPaths[i - 1], request.FfmpegPath, ct);
+                    continuationImage = new ImageSource { Url = dataUri };
+                    _activityLog.Log($"Clip {i + 1}: extracted last frame for continuation", LogLevel.Information);
+                }
+                catch (Exception frameEx)
+                {
+                    _activityLog.Log($"Clip {i + 1}: frame extraction failed, generating as standalone — {frameEx.Message}", LogLevel.Warning);
+                }
+            }
+
             var videoRequest = new VideoGenerationRequest
             {
                 Model = request.Model,
@@ -150,9 +167,7 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 AspectRatio = request.AspectRatio,
                 Resolution = request.Resolution,
                 Provider = request.Provider,
-                Image = i > 0 && File.Exists(clipPaths[i - 1])
-                    ? new ImageSource { Url = await ExtractLastFrameAsDataUriAsync(clipPaths[i - 1], request.FfmpegPath, ct) }
-                    : null
+                Image = continuationImage
             };
 
             // Generate
@@ -171,15 +186,39 @@ public sealed class ChainedGenerationService : IChainedGenerationService
 
             if (!pollResponse.IsDone || pollResponse.Video is null)
             {
-                var errMsg = $"Clip {i + 1} failed: {pollResponse.Status} — {pollResponse.Error?.Message}";
-                _activityLog.Log(errMsg, LogLevel.Error);
-                return new ChainedGenerationResult
+                // If this was an image-to-video attempt, retry as text-to-video before failing
+                if (continuationImage is not null)
                 {
-                    Success = false,
-                    ErrorMessage = errMsg,
-                    ClipsGenerated = i,
-                    ClipPaths = clipPaths
-                };
+                    _activityLog.Log($"Clip {i + 1}: image-to-video failed ({pollResponse.Status}), retrying as text-to-video…", LogLevel.Warning);
+                    continuationImage = null;
+                    videoRequest = videoRequest with { Image = null };
+
+                    var retryProgress = new Progress<string>(msg =>
+                        progress?.Report(new ChainedGenerationProgress
+                        {
+                            CurrentClip = i + 1,
+                            TotalClips = clipCount,
+                            Stage = "generating",
+                            Message = $"Clip {i + 1} (text-only retry): {msg}",
+                            OverallPercent = overallPct + (100.0 / clipCount * 0.7)
+                        }));
+
+                    pollResponse = await videoService.GenerateAsync(
+                        videoRequest, request.ApiKey, pollInterval, maxAttempts, retryProgress, ct);
+                }
+
+                if (!pollResponse.IsDone || pollResponse.Video is null)
+                {
+                    var errMsg = $"Clip {i + 1} failed: {pollResponse.Status} — {pollResponse.Error?.Message}";
+                    _activityLog.Log(errMsg, LogLevel.Error);
+                    return new ChainedGenerationResult
+                    {
+                        Success = false,
+                        ErrorMessage = errMsg,
+                        ClipsGenerated = i,
+                        ClipPaths = clipPaths
+                    };
+                }
             }
 
             // Download the clip
