@@ -32,7 +32,7 @@
                         <ui:SymbolIcon Symbol="Key24" FontSize="18" />
                         <TextBlock Text="xAI Grok API" FontWeight="Medium" />
                     </StackPanel>
-                    <ui:PasswordBox Password="{Binding GrokApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
+                    <ui:PasswordBox Password="{Binding GrokApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
                             <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
@@ -74,7 +74,7 @@
                         <ui:SymbolIcon Symbol="Lightbulb24" FontSize="18" />
                         <TextBlock Text="OpenAI API" FontWeight="Medium" />
                     </StackPanel>
-                    <ui:PasswordBox Password="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
+                    <ui:PasswordBox Password="{Binding OpenAiApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
                     <Grid ColumnDefinitions="Auto,*">
                         <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
                             <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
@@ -133,7 +133,7 @@
                         <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
                         <TextBlock Text="Seedance API" FontWeight="Medium" />
                     </StackPanel>
-                    <ui:PasswordBox Password="{Binding SeedanceApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
+                    <ui:PasswordBox Password="{Binding SeedanceApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
                     <!-- Test row -->
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                         <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
@@ -211,7 +211,7 @@
                             </StackPanel>
                             <StackPanel helpers:StackPanelHelper.Spacing="8">
                                 <ui:TextBox Text="{Binding FacebookClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
-                                <ui:PasswordBox Password="{Binding FacebookClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                                <ui:PasswordBox Password="{Binding FacebookClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                 <ui:Button Content="Connect Facebook" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
@@ -242,7 +242,7 @@
                             </StackPanel>
                             <StackPanel helpers:StackPanelHelper.Spacing="8">
                                 <ui:TextBox Text="{Binding InstagramClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
-                                <ui:PasswordBox Password="{Binding InstagramClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                                <ui:PasswordBox Password="{Binding InstagramClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                 <ui:Button Content="Connect Instagram" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
@@ -273,7 +273,7 @@
                             </StackPanel>
                             <StackPanel helpers:StackPanelHelper.Spacing="8">
                                 <ui:TextBox Text="{Binding TikTokClientKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Key" />
-                                <ui:PasswordBox Password="{Binding TikTokClientSecret, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Secret" />
+                                <ui:PasswordBox Password="{Binding TikTokClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Secret" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                                 <ui:Button Content="Connect TikTok" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"

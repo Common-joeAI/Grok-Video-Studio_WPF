@@ -495,6 +495,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task TestGrokKeyAsync()
     {
+        _activityLog.Log($"Test Grok key called — key length: {GrokApiKey?.Length ?? 0}", LogLevel.Information);
         if (string.IsNullOrWhiteSpace(GrokApiKey)) { GrokTestResult = "✗ No key entered"; return; }
         IsTestingGrok = true;
         GrokTestResult = "Testing…";
