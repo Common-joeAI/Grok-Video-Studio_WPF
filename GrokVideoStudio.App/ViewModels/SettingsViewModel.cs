@@ -461,7 +461,7 @@ public partial class SettingsViewModel : ObservableObject
         var exe = string.IsNullOrEmpty(FfmpegPath) ? "ffmpeg" : FfmpegPath;
 
         // If ffmpeg not found on PATH, check common winget/install locations
-        if (!System.IO.File.Exists(exe) && !exe.Contains('\') && !exe.Contains('/'))
+        if (!System.IO.File.Exists(exe) && !exe.Contains('\\') && !exe.Contains('/'))
         {
             var searchPaths = new[]
             {
