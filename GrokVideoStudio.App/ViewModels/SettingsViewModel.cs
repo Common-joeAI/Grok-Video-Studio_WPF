@@ -459,6 +459,31 @@ public partial class SettingsViewModel : ObservableObject
     private async Task TestFfmpegAsync()
     {
         var exe = string.IsNullOrEmpty(FfmpegPath) ? "ffmpeg" : FfmpegPath;
+
+        // If ffmpeg not found on PATH, check common winget/install locations
+        if (!System.IO.File.Exists(exe) && !exe.Contains('\') && !exe.Contains('/'))
+        {
+            var searchPaths = new[]
+            {
+                System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "WinGet", "Packages"),
+                @"C:\ProgramData\chocolatey\bin",
+                @"C:\ffmpeg\bin",
+            };
+
+            foreach (var searchDir in searchPaths)
+            {
+                if (!System.IO.Directory.Exists(searchDir)) continue;
+                var found = System.IO.Directory.GetFiles(searchDir, "ffmpeg.exe", System.IO.SearchOption.AllDirectories).FirstOrDefault();
+                if (found != null)
+                {
+                    exe = found;
+                    FfmpegPath = found;  // persist for future use
+                    _activityLog.Log($"FFmpeg auto-detected at: {found}", LogLevel.Information);
+                    break;
+                }
+            }
+        }
+
         _activityLog.Log($"Testing FFmpeg at: {exe}", LogLevel.Information);
 
         try
@@ -639,7 +664,7 @@ public partial class SettingsViewModel : ObservableObject
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File '{scriptPath}'",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}'",
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
