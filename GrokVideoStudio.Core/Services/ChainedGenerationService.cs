@@ -159,19 +159,12 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 }
             }
 
-            // Auto-switch to grok-imagine-video-1.5 for image-to-video continuation.
-            // The base grok-imagine-video model does NOT support image-to-video;
-            // only 1.5 does. If the user selected the base model and we're doing
-            // I2V (clip 2+), upgrade to 1.5 automatically.
+            // Image-to-video model strategy:
+            // Try grok-imagine-video-1.5 first (best I2V model).
+            // If the account doesn't have access, fall back to grok-imagine-video (base).
+            // If the base model also rejects the image, fall back to text-to-video (no image).
             var clipModel = request.Model;
-            if (continuationImage is not null && request.Provider == VideoProvider.GrokImagine)
-            {
-                if (!clipModel.Contains("1.5"))
-                {
-                    clipModel = "grok-imagine-video-1.5";
-                    _activityLog.Log($"Clip {i + 1}: auto-switched to {clipModel} for image-to-video continuation", LogLevel.Information);
-                }
-            }
+            var triedModels = new List<(string model, string error)>();
 
             var videoRequest = new VideoGenerationRequest
             {
@@ -184,51 +177,72 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 Image = continuationImage
             };
 
-            // Generate
-            var progressAdapter = new Progress<string>(msg =>
-                progress?.Report(new ChainedGenerationProgress
-                {
-                    CurrentClip = i + 1,
-                    TotalClips = clipCount,
-                    Stage = "generating",
-                    Message = $"Clip {i + 1}: {msg}",
-                    OverallPercent = overallPct + (100.0 / clipCount * 0.7) // generation is 70% of each clip's work
-                }));
+            // If doing I2V, try upgrading to 1.5 first
+            if (continuationImage is not null && request.Provider == VideoProvider.GrokImagine && !clipModel.Contains("1.5"))
+            {
+                clipModel = "grok-imagine-video-1.5";
+                videoRequest = videoRequest with { Model = clipModel };
+                _activityLog.Log($"Clip {i + 1}: trying {clipModel} for image-to-video", LogLevel.Information);
+            }
 
-            // Per-clip try-catch: a single clip failure should skip, not kill the chain
+            // Per-clip try-catch with multi-model fallback
             string? clipPath = null;
             try
             {
-                var pollResponse = await videoService.GenerateAsync(
-                    videoRequest, request.ApiKey, pollInterval, maxAttempts, progressAdapter, ct);
+                VideoPollResponse? pollResponse = null;
 
-                if (!pollResponse.IsDone || pollResponse.Video is null)
+                // Attempt 1: I2V with preferred model (1.5 or user-selected)
+                // Attempt 2: I2V with base model (grok-imagine-video)
+                // Attempt 3: text-to-video (drop image entirely)
+                var attemptConfigs = new List<(string model, ImageSource? image, string label)>
                 {
-                    // If this was an image-to-video attempt, retry as text-to-video before failing
-                    if (continuationImage is not null)
+                    (clipModel, continuationImage, "I2V"),
+                };
+
+                // Add base model fallback if we're using 1.5
+                if (continuationImage is not null && clipModel.Contains("1.5"))
+                    attemptConfigs.Add(("grok-imagine-video", continuationImage, "I2V (base model)"));
+
+                // Add text-to-video fallback if we have an image
+                if (continuationImage is not null)
+                    attemptConfigs.Add(("grok-imagine-video", null, "text-to-video fallback"));
+
+                foreach (var (tryModel, tryImage, label) in attemptConfigs)
+                {
+                    var tryRequest = videoRequest with { Model = tryModel, Image = tryImage };
+                    var attemptProgress = new Progress<string>(msg =>
+                        progress?.Report(new ChainedGenerationProgress
+                        {
+                            CurrentClip = i + 1,
+                            TotalClips = clipCount,
+                            Stage = "generating",
+                            Message = $"Clip {i + 1} ({label}): {msg}",
+                            OverallPercent = overallPct + (100.0 / clipCount * 0.7)
+                        }));
+
+                    try
                     {
-                        _activityLog.Log($"Clip {i + 1}: image-to-video failed ({pollResponse.Status}), retrying as text-to-video…", LogLevel.Warning);
-                        continuationImage = null;
-                        videoRequest = videoRequest with { Image = null };
-
-                        var retryProgress = new Progress<string>(msg =>
-                            progress?.Report(new ChainedGenerationProgress
-                            {
-                                CurrentClip = i + 1,
-                                TotalClips = clipCount,
-                                Stage = "generating",
-                                Message = $"Clip {i + 1} (text-only retry): {msg}",
-                                OverallPercent = overallPct + (100.0 / clipCount * 0.7)
-                            }));
-
                         pollResponse = await videoService.GenerateAsync(
-                            videoRequest, request.ApiKey, pollInterval, maxAttempts, retryProgress, ct);
-                    }
+                            tryRequest, request.ApiKey, pollInterval, maxAttempts, attemptProgress, ct);
 
-                    if (!pollResponse.IsDone || pollResponse.Video is null)
-                    {
-                        throw new Exception($"Clip {i + 1} failed: {pollResponse.Status} — {pollResponse.Error?.Message}");
+                        if (pollResponse.IsDone && pollResponse.Video is not null)
+                            break; // Success!
+
+                        _activityLog.Log($"Clip {i + 1}: {label} with {tryModel} returned {pollResponse.Status}", LogLevel.Warning);
                     }
+                    catch (Exception tryEx)
+                    {
+                        _activityLog.Log($"Clip {i + 1}: {label} with {tryModel} failed — {tryEx.Message}", LogLevel.Warning);
+                        triedModels.Add((tryModel, tryEx.Message));
+                    }
+                }
+
+                if (pollResponse is null || !pollResponse.IsDone || pollResponse.Video is null)
+                {
+                    var errors = triedModels.Count > 0
+                        ? string.Join("; ", triedModels.Select(t => $"{t.model}: {t.error}"))
+                        : "all attempts exhausted";
+                    throw new Exception($"Clip {i + 1} failed after all retries: {errors}");
                 }
 
                 // Download the clip
