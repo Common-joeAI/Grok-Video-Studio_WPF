@@ -98,6 +98,9 @@ public partial class ChainGenerationViewModel : ObservableObject
         _activityLog = activityLog;
         _logger = logger;
 
+        // When scene plan items are added/removed, re-evaluate whether Run is enabled
+        ScenePlan.CollectionChanged += (_, _) => RunChainCommand.NotifyCanExecuteChanged();
+
         LoadDefaults();
     }
 
@@ -207,6 +210,7 @@ public partial class ChainGenerationViewModel : ObservableObject
                 ScenePlan.Add(scene);
 
             CalculatedClipCount = result.ClipCount;
+            RunChainCommand.NotifyCanExecuteChanged();  // ScenePlan.Count changed — re-evaluate CanExecute
             StatusMessage = $"✓ Scene plan ready: {result.ClipCount} scenes for {result.TotalDuration:F1}s of audio.";
             _activityLog.Log($"Scene plan generated: {result.ClipCount} scenes", LogLevel.Information);
         }
