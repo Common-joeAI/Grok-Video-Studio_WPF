@@ -159,9 +159,23 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 }
             }
 
+            // Auto-switch to grok-imagine-video-1.5 for image-to-video continuation.
+            // The base grok-imagine-video model does NOT support image-to-video;
+            // only 1.5 does. If the user selected the base model and we're doing
+            // I2V (clip 2+), upgrade to 1.5 automatically.
+            var clipModel = request.Model;
+            if (continuationImage is not null && request.Provider == VideoProvider.GrokImagine)
+            {
+                if (!clipModel.Contains("1.5"))
+                {
+                    clipModel = "grok-imagine-video-1.5";
+                    _activityLog.Log($"Clip {i + 1}: auto-switched to {clipModel} for image-to-video continuation", LogLevel.Information);
+                }
+            }
+
             var videoRequest = new VideoGenerationRequest
             {
-                Model = request.Model,
+                Model = clipModel,
                 Prompt = prompt,
                 Duration = request.ClipDuration,
                 AspectRatio = request.AspectRatio,
