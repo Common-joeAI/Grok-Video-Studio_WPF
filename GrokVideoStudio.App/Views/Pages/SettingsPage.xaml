@@ -289,6 +289,26 @@
                 </StackPanel>
             </Border>
 
+            <!-- ── Local GPU Server ── -->
+            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                <StackPanel helpers:StackPanelHelper.Spacing="12">
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                        <ui:SymbolIcon Symbol="Desktop24" FontSize="18" />
+                        <TextBlock Text="Local GPU Server" FontWeight="Medium" />
+                    </StackPanel>
+                    <TextBlock Text="Run a local video generation server on your GPU — zero API cost per clip. Uses LTX-Video (Lightricks)."
+                               FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                        <TextBlock Text="Server URL" VerticalAlignment="Center" Width="100" />
+                        <ui:TextBox Text="{Binding LocalServerUrl}" PlaceholderText="http://localhost:7860" MinWidth="250" />
+                        <ui:Button Content="Test Connection" Icon="{ui:SymbolIcon PlugConnected24}" Appearance="Secondary"
+                                   Command="{Binding TestLocalServerCommand}" Padding="12,6" />
+                    </StackPanel>
+                    <TextBlock Text="Start the server: local_server\start_server.bat — auto-creates venv and installs LTX-Video"
+                               FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
             <!-- ── FFmpeg & Tools ── -->
             <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
                 <StackPanel helpers:StackPanelHelper.Spacing="12">

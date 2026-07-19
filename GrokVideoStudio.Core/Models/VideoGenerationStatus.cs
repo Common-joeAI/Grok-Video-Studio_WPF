@@ -8,7 +8,8 @@ public enum VideoProvider
 {
     GrokImagine,
     OpenAiSora,
-    Seedance
+    Seedance,
+    LocalGPU
 }
 
 /// <summary>

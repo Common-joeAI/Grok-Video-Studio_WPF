@@ -41,9 +41,11 @@ public partial class App : WpfUiApp
                 services.AddHttpClient<GrokVideoService>();
                 services.AddHttpClient<SoraVideoService>();
                 services.AddHttpClient<SeedanceVideoService>();
+                services.AddHttpClient<LocalVideoService>(client => { client.BaseAddress = new Uri("http://localhost:7860"); });
                 services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<GrokVideoService>());
                 services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<SoraVideoService>());
                 services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<SeedanceVideoService>());
+                services.AddSingleton<IVideoGenerationService>(sp => sp.GetRequiredService<LocalVideoService>());
                 services.AddSingleton<IVideoGenerationFactory, VideoGenerationFactory>();
 
                 // ── Prompt generation services ──

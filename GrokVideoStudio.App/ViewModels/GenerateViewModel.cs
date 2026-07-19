@@ -83,7 +83,7 @@ public partial class GenerateViewModel : ObservableObject
     ];
     public ObservableCollection<VideoProvider> VideoProviders { get; } =
     [
-        VideoProvider.GrokImagine, VideoProvider.OpenAiSora, VideoProvider.Seedance
+        VideoProvider.GrokImagine, VideoProvider.OpenAiSora, VideoProvider.Seedance, VideoProvider.LocalGPU
     ];
     public ObservableCollection<string> Models { get; } =
     [
@@ -194,8 +194,12 @@ public partial class GenerateViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            StatusMessage = $"⚠ No API key set for {SelectedProvider}. Configure in Settings.";
-            _activityLog.Log($"No API key for {SelectedProvider}", LogLevel.Warning);
+            if (SelectedProvider != VideoProvider.LocalGPU)
+            {
+                StatusMessage = $"⚠ No API key set for {SelectedProvider}. Configure in Settings.";
+                _activityLog.Log($"No API key for {SelectedProvider}", LogLevel.Warning);
+                return;
+            }
             return;
         }
 

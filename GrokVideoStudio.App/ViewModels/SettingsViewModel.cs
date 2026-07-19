@@ -82,6 +82,7 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Misc ──
     [ObservableProperty] private string _ffmpegPath = "ffmpeg";
+    [ObservableProperty] private string _localServerUrl = "http://localhost:7860";
     [ObservableProperty] private string _theme = "Dark";
     [ObservableProperty] private int _pollIntervalSeconds = 5;
     [ObservableProperty] private int _maxPollAttempts = 120;
@@ -159,6 +160,7 @@ public partial class SettingsViewModel : ObservableObject
         EnableGpuEncode = s.EnableGpuEncode;
         MusicMixPath = s.MusicMixPath;
         FfmpegPath = s.FfmpegPath;
+            LocalServerUrl = string.IsNullOrEmpty(s.LocalServerUrl) ? "http://localhost:7860" : s.LocalServerUrl;
         Theme = s.Theme;
         PollIntervalSeconds = s.PollIntervalSeconds;
         MaxPollAttempts = s.MaxPollAttempts;
@@ -206,6 +208,7 @@ public partial class SettingsViewModel : ObservableObject
         EnableGpuEncode = EnableGpuEncode,
         MusicMixPath = MusicMixPath,
         FfmpegPath = FfmpegPath,
+            LocalServerUrl = LocalServerUrl,
         Theme = Theme,
         PollIntervalSeconds = PollIntervalSeconds,
         MaxPollAttempts = MaxPollAttempts,
@@ -591,6 +594,39 @@ public partial class SettingsViewModel : ObservableObject
         finally { IsTestingSeedance = false; }
     }
 
+    [RelayCommand]
+    private async Task TestLocalServerAsync()
+    {
+        _activityLog.Log($"Testing local GPU server at {LocalServerUrl}…", LogLevel.Information);
+
+        try
+        {
+            using var http = new System.Net.Http.HttpClient();
+            http.Timeout = TimeSpan.FromSeconds(5);
+
+            var url = LocalServerUrl.TrimEnd('/') + "/health";
+            var response = await http.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _activityLog.Log($"Local GPU server ONLINE — {body}", LogLevel.Information);
+            }
+            else
+            {
+                _activityLog.Log($"Local GPU server responded with {(int)response.StatusCode} {response.ReasonPhrase}", LogLevel.Warning);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            _activityLog.Log("Local GPU server timeout — is the server running? Start it with start_server.bat", LogLevel.Error);
+        }
+        catch (Exception ex)
+        {
+            _activityLog.Log($"Local GPU server connection failed: {ex.Message}", LogLevel.Error);
+        }
+    }
+
     // ── Auto-save on key field changes ─────────────────────────────────────────
     // CommunityToolkit.Mvvm calls these partials whenever the backing property changes.
     // We debounce slightly (300ms) so rapid keystrokes don't hammer disk.
@@ -619,6 +655,7 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnOllamaApiBaseChanged(string value)      => ScheduleAutoSave();
     partial void OnOllamaChatModelChanged(string value)    => ScheduleAutoSave();
     partial void OnFfmpegPathChanged(string value)         => ScheduleAutoSave();
+    partial void OnLocalServerUrlChanged(string value)     => ScheduleAutoSave();
     partial void OnDefaultAspectRatioChanged(string value) => ScheduleAutoSave();
     partial void OnDefaultResolutionChanged(string value)  => ScheduleAutoSave();
     partial void OnDefaultDurationChanged(int value)       => ScheduleAutoSave();

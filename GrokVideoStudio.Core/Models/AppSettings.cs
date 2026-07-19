@@ -28,6 +28,9 @@ public sealed record AppSettings
     // ── Seedance API ──
     public string SeedanceApiKey { get; init; } = string.Empty;
 
+    // ── Local GPU Server ──
+    public string LocalServerUrl { get; init; } = "http://localhost:8000";
+
     // ── Social Publishing: OAuth Client Credentials ──
     // YouTube uses a client_secrets.json file path (Google's convention)
     public string YouTubeApiKey { get; init; } = string.Empty;

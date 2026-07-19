@@ -75,7 +75,7 @@ public partial class ChainGenerationViewModel : ObservableObject
     // ── Collections ──
     public ObservableCollection<VideoProvider> VideoProviders { get; } =
     [
-        VideoProvider.GrokImagine, VideoProvider.OpenAiSora, VideoProvider.Seedance
+        VideoProvider.GrokImagine, VideoProvider.OpenAiSora, VideoProvider.Seedance, VideoProvider.LocalGPU
     ];
     public ObservableCollection<string> Models { get; } =
     [
@@ -239,7 +239,11 @@ public partial class ChainGenerationViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            StatusMessage = $"⚠ No API key for {SelectedProvider}. Configure in Settings.";
+            if (SelectedProvider != VideoProvider.LocalGPU)
+                {
+                    StatusMessage = $"⚠ No API key for {SelectedProvider}. Configure in Settings.";
+                    return;
+                }
             return;
         }
 

@@ -1,0 +1,10 @@
+torch
+torchvision
+diffusers>=0.32.0
+transformers
+accelerate
+pillow
+fastapi
+uvicorn
+imageio
+imageio-ffmpeg
