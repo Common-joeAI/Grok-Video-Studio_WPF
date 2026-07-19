@@ -85,11 +85,27 @@ public partial class GenerateViewModel : ObservableObject
     [
         VideoProvider.GrokImagine, VideoProvider.OpenAiSora, VideoProvider.Seedance, VideoProvider.LocalGPU
     ];
-    public ObservableCollection<string> Models { get; } =
-    [
-        "grok-imagine-video", "grok-imagine-video-1.5",
-        "sora-2", "sora-2-pro", "seedance-2.0"
-    ];
+    public ObservableCollection<string> Models { get; } = [];
+
+    private static readonly Dictionary<VideoProvider, string[]> _providerModels = new()
+    {
+        [VideoProvider.GrokImagine]  = ["grok-imagine-video", "grok-imagine-video-1.5"],
+        [VideoProvider.OpenAiSora]   = ["sora-2", "sora-2-pro"],
+        [VideoProvider.Seedance]     = ["seedance-2.0"],
+        [VideoProvider.LocalGPU]     = ["ltxv-2b-0.9.7-distilled", "ltxv-2b-0.9.6"],
+    };
+
+    private void RefreshModels()
+    {
+        var key = SelectedProvider;
+        var list = _providerModels.TryGetValue(key, out var m) ? m : ["grok-imagine-video"];
+        Models.Clear();
+        foreach (var model in list) Models.Add(model);
+        if (!Models.Contains(SelectedModel))
+            SelectedModel = Models[0];
+    }
+
+    partial void OnSelectedProviderChanged(VideoProvider value) => RefreshModels();
     public ObservableCollection<string> AspectRatios { get; } = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
     public ObservableCollection<string> Resolutions { get; } = ["480p", "720p", "1080p"];
     public ObservableCollection<int> Durations { get; } = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
@@ -129,7 +145,11 @@ public partial class GenerateViewModel : ObservableObject
         Duration = s.DefaultDuration > 0 ? s.DefaultDuration : 8;
         AspectRatio = string.IsNullOrEmpty(s.DefaultAspectRatio) ? "16:9" : s.DefaultAspectRatio;
         Resolution = string.IsNullOrEmpty(s.DefaultResolution) ? "720p" : s.DefaultResolution;
-        SelectedModel = string.IsNullOrEmpty(s.GrokVideoModel) ? "grok-imagine-video" : s.GrokVideoModel;
+        // Populate the model list for the current provider first, then restore the saved model
+        RefreshModels();
+        var savedModel = s.GrokVideoModel;
+        if (!string.IsNullOrEmpty(savedModel) && Models.Contains(savedModel))
+            SelectedModel = savedModel;
     }
 
     // ── Generate Prompt (from concept) ──────────────────────
