@@ -1,24 +1,7 @@
 <#
 .SYNOPSIS
-  One-click Vast.ai GPU provisioning for GrokVideoStudio.
-  Rents a cloud GPU, deploys the LTX-Video server, and prints the URL
-  to paste into Settings -> Local Server URL.
-
-.DESCRIPTION
-  Prerequisites:
-    - Vast.ai account (register at https://vast.ai)
-    - API key from https://vast.ai/console/api/
-    - Credits loaded on your account
-
-  Usage:
-    .\vast_provision.ps1                    # Interactive -- pick GPU tier
-    .\vast_provision.ps1 -Tier 4090         # RTX 4090 (~$0.30/hr)
-    .\vast_provision.ps1 -Tier A100         # A100 80GB (~$1.50/hr)
-    .\vast_provision.ps1 -Tier H100         # H100 80GB (~$2.50/hr)
-    .\vast_provision.ps1 -Teardown          # Stop & destroy the instance
-    .\vast_provision.ps1 -ListInstances     # Show running instances
+  Provision or destroy a Vast.ai GPU instance for GrokVideoStudio.
 #>
-
 param(
     [ValidateSet("4090", "A100", "H100", "Auto")]
     [string]$Tier = "Auto",
@@ -28,499 +11,299 @@ param(
     [switch]$Status
 )
 
-# If API key passed via command line, set it as env var
-if ($VastApiKey -and $VastApiKey -ne "") {
-    $env:VAST_API_KEY = $VastApiKey
-}
-
 $ErrorActionPreference = "Stop"
-$VastCliVersion = "0.2.3"
+$script:VastCli = $null
 $InstanceFile = Join-Path $PSScriptRoot ".vast_instance_id"
-$ServerDir = $PSScriptRoot
+$DiskGb = 50
 
-#  Helpers 
+function Write-Header([string]$Message) { Write-Host "`n==> $Message`n" -ForegroundColor Cyan }
+function Write-Step([string]$Message) { Write-Host "  $Message" }
+function Write-OK([string]$Message) { Write-Host "  $Message" -ForegroundColor Green }
+function Write-Warn([string]$Message) { Write-Host "  $Message" -ForegroundColor Yellow }
+function Write-Err([string]$Message) { Write-Host "  $Message" -ForegroundColor Red }
 
-function Write-Header($msg) {
-    Write-Host "`n$("==>") $msg`n" -ForegroundColor Cyan
+function Resolve-VastCli([string]$PythonExe = "") {
+    foreach ($name in @("vastai", "vast")) {
+        $command = Get-Command $name -ErrorAction SilentlyContinue
+        if ($command) { return $command.Source }
+    }
+
+    if ($PythonExe) {
+        $directories = @()
+        try { $directories += (& $PythonExe -c "import sysconfig; print(sysconfig.get_path('scripts'))" 2>$null) } catch { }
+        try { $directories += (Join-Path ((& $PythonExe -m site --user-base 2>$null | Select-Object -Last 1).Trim()) "Scripts") } catch { }
+        foreach ($directory in ($directories | Where-Object { $_ } | Select-Object -Unique)) {
+            foreach ($name in @("vastai.exe", "vastai", "vast.exe", "vast")) {
+                $candidate = Join-Path $directory.Trim() $name
+                if (Test-Path $candidate) { return $candidate }
+            }
+        }
+    }
+    return $null
 }
 
-function Write-Step($msg) {
-    Write-Host "  $msg" -ForegroundColor White
-}
+function Find-Python {
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        foreach ($version in @("3.13", "3.12", "3.11", "3.10", "3.14")) {
+            try {
+                $path = (& py -$version -c "import sys; print(sys.executable)" 2>$null | Select-Object -Last 1).Trim()
+                if ($path -and (Test-Path $path)) { return $path }
+            } catch { }
+        }
+    }
 
-function Write-OK($msg) {
-    Write-Host "  $msg" -ForegroundColor Green
-}
+    $root = Join-Path $env:LOCALAPPDATA "Programs\Python"
+    if (Test-Path $root) {
+        foreach ($directory in (Get-ChildItem $root -Directory | Sort-Object Name -Descending)) {
+            $path = Join-Path $directory.FullName "python.exe"
+            if (Test-Path $path) { return $path }
+        }
+    }
 
-function Write-Warn($msg) {
-    Write-Host "  $msg" -ForegroundColor Yellow
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if ($python) { return $python.Source }
+    return $null
 }
-
-function Write-Err($msg) {
-    Write-Host "  $msg" -ForegroundColor Red
-}
-
-#  Install Vast CLI 
 
 function Ensure-VastCli {
     Write-Step "Checking for Vast.ai CLI..."
-    $vast = Get-Command vast -ErrorAction SilentlyContinue
-    if ($vast) {
-        Write-OK "Vast CLI already installed."
+    $script:VastCli = Resolve-VastCli
+    if ($script:VastCli) {
+        Write-OK "Vast CLI found: $script:VastCli"
         return $true
     }
 
-    Write-Step "Installing Vast.ai CLI via pip..."
-    # vastai has no wheels for Python 3.14; need 3.10-3.13
-    $pyExe = $null
-    $pyVer = $null
-
-    # Method 1: Try py launcher with specific versions, resolve actual exe path
-    foreach ($ver in @("3.12", "3.11", "3.10", "3.13")) {
-        try {
-            $testResult = & py -$ver --version 2>&1
-            if ($LASTEXITCODE -eq 0 -and $testResult -match "Python") {
-                # Resolve the actual python.exe path so & can invoke it directly
-                $resolvedPath = (& py -$ver -c "import sys; print(sys.executable)" 2>$null).Trim()
-                if ($resolvedPath -and (Test-Path $resolvedPath)) {
-                    $pyExe = $resolvedPath
-                    $pyVer = $ver
-                    Write-Step "Using Python $ver ($resolvedPath) for vastai install"
-                    break
-                }
-            }
-        } catch { }
-    }
-
-    # Method 2: Check known install paths directly (py launcher may not be configured)
-    if (-not $pyExe) {
-        $localProgs = Join-Path $env:LOCALAPPDATA "Programs\Python"
-        if (Test-Path $localProgs) {
-            foreach ($dir in (Get-ChildItem $localProgs -Directory | Sort-Object Name -Descending)) {
-                if ($dir.Name -match "Python(\d)(\d+)") {
-                    $major = [int]$Matches[1]
-                    $minor = [int]$Matches[2]
-                    if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
-                        $exePath = Join-Path $dir.FullName "python.exe"
-                        if (Test-Path $exePath) {
-                            $pyExe = $exePath
-                            $pyVer = "3.$minor"
-                            Write-Step "Using Python 3.$minor ($exePath) for vastai install"
-                            break
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    # Method 3: Check python on PATH if it is a compatible version
-    if (-not $pyExe) {
-        $pathPy = (Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
-        if ($pathPy) {
-            $verResult = & $pathPy --version 2>&1
-            if ($verResult -match "Python (\d+)\.(\d+)") {
-                $major = [int]$Matches[1]
-                $minor = [int]$Matches[2]
-                if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
-                    $pyExe = $pathPy
-                    $pyVer = "3.$minor"
-                    Write-Step "Using Python 3.$minor (PATH) for vastai install"
-                }
-            }
-        }
-    }
-
-    if (-not $pyExe) {
-        Write-Err "No compatible Python found. vastai needs Python 3.10-3.13."
-        Write-Err "Python 3.14 is too new - no vastai wheels available."
-        Write-Host "  Install Python 3.12 from: https://www.python.org/downloads/release/python-3120/" -ForegroundColor Yellow
+    Write-Step "Installing the official Vast.ai CLI package (vastai)..."
+    $python = Find-Python
+    if (-not $python) {
+        Write-Err "Python 3.10 or newer was not found."
         return $false
     }
 
-    & $pyExe -m pip install "vastai" 2>&1 | Out-Null
-
-    # Add user Scripts and Python dir to PATH for this session
-    $pyPath = (& $pyExe -c "import sys; print(sys.prefix)" 2>$null)
-    if ($pyPath) {
-        $pipScripts = Join-Path $pyPath "Scripts"
-        if (Test-Path $pipScripts) { $env:PATH += ";$pipScripts" }
+    Write-Step "Using Python: $python"
+    $output = & $python -m pip install --upgrade vastai 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn "Normal install failed; retrying with --user..."
+        $output = & $python -m pip install --user --upgrade vastai 2>&1
     }
-    # Also check APPDATA for user installs
-    $userScripts = Join-Path $env:APPDATA "Python\Scripts"
-    if (Test-Path $userScripts) { $env:PATH += ";$userScripts" }
-
-    $vast = Get-Command vast -ErrorAction SilentlyContinue
-    if ($vast) {
-        Write-OK "Vast CLI installed."
-        return $true
-    }
-
-    # Try user Scripts dir
-    $userScripts = Join-Path $env:APPDATA "Python\Scripts"
-    if (Test-Path (Join-Path $userScripts "vast.exe")) {
-        $env:PATH += ";$userScripts"
-        Write-OK "Vast CLI installed (user scripts)."
-        return $true
-    }
-
-    Write-Err "Could not install Vast CLI. Try: pip install vastai"
-    return $false
-}
-
-function Ensure-VastApiKey {
-    Write-Step "Checking Vast.ai API key..."
-    $apiKey = $env:VAST_API_KEY
-    if ($apiKey) {
-        vast set api-key $apiKey 2>&1 | Out-Null
-        Write-OK "API key set from environment."
-        return $true
-    }
-
-    # Check if already configured
-    $keyFile = Join-Path $env:USERPROFILE ".vast_api_key"
-    if (Test-Path $keyFile) {
-        Write-OK "API key already configured."
-        return $true
-    }
-
-    Write-Warn "No Vast.ai API key found."
-    Write-Host ""
-    Write-Host "  1. Go to https://vast.ai/console/api/" -ForegroundColor White
-    Write-Host "  2. Copy your API key" -ForegroundColor White
-    Write-Host "  3. Paste it below:" -ForegroundColor White
-    Write-Host ""
-    $apiKey = Read-Host "  API Key"
-
-    if ([string]::IsNullOrWhiteSpace($apiKey)) {
-        Write-Err "No key provided."
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Could not install Vast.ai CLI."
+        $output | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
         return $false
     }
 
-    vast set api-key $apiKey 2>&1 | Out-Null
-    $apiKey | Out-File -FilePath $keyFile -NoNewline
-    Write-OK "API key saved."
+    $script:VastCli = Resolve-VastCli -PythonExe $python
+    if (-not $script:VastCli) {
+        Write-Err "vastai installed, but vastai.exe could not be located."
+        return $false
+    }
+
+    Write-OK "Vast CLI installed: $script:VastCli"
     return $true
 }
 
-#  Search & Provision 
+function Invoke-Vast([string[]]$Arguments) {
+    $output = & $script:VastCli @Arguments 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "vastai $($Arguments -join ' ') failed:`n$($output -join "`n")"
+    }
+    return $output
+}
 
-function Get-GpuFilter {
+function Ensure-ApiKey {
+    if ($VastApiKey) { $env:VAST_API_KEY = $VastApiKey }
+    if ($env:VAST_API_KEY) {
+        Invoke-Vast @("set", "api-key", $env:VAST_API_KEY) | Out-Null
+        Write-OK "Vast.ai API key configured."
+        return $true
+    }
+
+    & $script:VastCli show user --raw 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-OK "Existing Vast.ai authentication is valid."
+        return $true
+    }
+
+    $key = Read-Host "  Vast.ai API key"
+    if (-not $key) { return $false }
+    Invoke-Vast @("set", "api-key", $key) | Out-Null
+    Write-OK "Vast.ai API key configured."
+    return $true
+}
+
+function Get-Query {
     switch ($Tier) {
-        "4090" { return "gpu_name=RTX_4090" }
-        "A100" { return "gpu_name=A100_SXM4-80GB" }
-        "H100" { return "gpu_name=H100" }
-        default {
-            # Auto: pick cheapest GPU with 16GB+ VRAM under $0.50/hr
-            return "gpu_ram>=16 dph<=0.50 verified>=0.9"
-        }
+        "4090" { return "gpu_name=RTX_4090 num_gpus=1 reliability>=0.95 disk_space>=$DiskGb rented=false" }
+        "A100" { return "gpu_name=A100 num_gpus=1 gpu_ram>=70 reliability>=0.95 disk_space>=$DiskGb rented=false" }
+        "H100" { return "gpu_name=H100 num_gpus=1 gpu_ram>=70 reliability>=0.95 disk_space>=$DiskGb rented=false" }
+        default { return "gpu_ram>=16 num_gpus=1 reliability>=0.95 dph<=0.50 disk_space>=$DiskGb rented=false" }
     }
 }
 
-function Search-Instances {
-    param([string]$Filter)
+function Search-Offers {
+    Write-Step "Searching for available GPU offers..."
+    try {
+        $json = (Invoke-Vast @("search", "offers", (Get-Query), "--order", "dph_total", "--limit", "5", "--raw")) -join "`n"
+        $result = $json | ConvertFrom-Json
+        $offers = if ($result.PSObject.Properties["offers"]) { @($result.offers) } else { @($result) }
+        $offers = @($offers | Where-Object { $_.id })
+        if ($offers.Count -eq 0) { throw "No matching offers were returned." }
 
-    Write-Step "Searching for available GPU instances..."
-    $filterStr = if ($Tier -eq "Auto") { "gpu_ram>=16 dph<=0.50 verified>=0.9" } else { "gpu_name~=$Tier" }
-    
-    $raw = vast search offers $filterStr --raw 2>&1
-    $lines = $raw -split "`n" | Where-Object { $_.Trim() -ne "" }
-    
-    if ($lines.Count -lt 2) {
-        Write-Err "No instances found matching filter."
+        Write-Host ""
+        for ($i = 0; $i -lt $offers.Count; $i++) {
+            $offer = $offers[$i]
+            $price = if ($null -ne $offer.dph_total) { $offer.dph_total } else { $offer.dph }
+            Write-Host "  [$($i + 1)] ID $($offer.id) | $($offer.gpu_name) | `$$price/hr"
+        }
+
+        if ($Tier -eq "Auto") { return [string]$offers[0].id }
+        $choice = Read-Host "  Pick an offer [1-$($offers.Count), Enter for 1]"
+        if (-not $choice) { $choice = 1 }
+        $index = [Math]::Max(0, [Math]::Min($offers.Count - 1, ([int]$choice - 1)))
+        return [string]$offers[$index].id
+    } catch {
+        Write-Err $_.Exception.Message
         return $null
     }
-
-    # Parse the raw output -- columns: id, gpu_name, dph, gpu_ram, dlperf, etc.
-    # Show top 5 cheapest
-    Write-Host ""
-    Write-Host "  Top 5 cheapest offers:" -ForegroundColor White
-    Write-Host "  $($lines[0])" -ForegroundColor DarkGray
-    Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
-
-    $count = [Math]::Min(6, $lines.Count)
-    for ($i = 1; $i -lt $count; $i++) {
-        $parts = $lines[$i] -split "\s+"
-        if ($parts.Count -ge 4) {
-            Write-Host "  [$($i)] ID: $($parts[0]) | $($parts[1]) | $$($parts[2])/hr | $($parts[3])GB VRAM" -ForegroundColor White
-        }
-    }
-    Write-Host ""
-
-    # Auto-pick cheapest if Auto tier
-    if ($Tier -eq "Auto") {
-        $parts = $lines[1] -split "\s+"
-        return $parts[0]
-    }
-
-    # Otherwise let user pick
-    $choice = Read-Host "  Pick an offer [1-5, or enter for #1]"
-    if ([string]::IsNullOrWhiteSpace($choice)) { $choice = "1" }
-    
-    $idx = [int]$choice
-    if ($idx -ge 1 -and $idx -lt $lines.Count) {
-        $parts = $lines[$idx] -split "\s+"
-        return $parts[0]
-    }
-
-    # Fallback: first offer
-    $parts = $lines[1] -split "\s+"
-    return $parts[0]
 }
 
-function Provision-Instance {
-    param([string]$OfferId)
+function New-OnstartFile {
+    $server = Join-Path $PSScriptRoot "video_server.py"
+    $requirements = Join-Path $PSScriptRoot "requirements.txt"
+    if (-not (Test-Path $server)) { throw "Missing $server" }
+    if (-not (Test-Path $requirements)) { throw "Missing $requirements" }
 
-    Write-Step "Creating instance from offer $OfferId..."
-    
-    # Create instance with our Docker image
-    # Using a base CUDA image + onstart script to deploy our server
-    $imageName = "nvidia/cuda:12.4.0-cudnn-runtime-ubuntu22.04"
-    $onstartScript = @"
+    $server64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($server))
+    $requirements64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($requirements))
+    $script = @"
 #!/bin/bash
-set -e
-apt-get update && apt-get install -y python3 python3-pip python3-venv libgl1 libglib2.0-0
+set -euo pipefail
+mkdir -p /app
+printf '%s' '$server64' | base64 -d > /app/video_server.py
+printf '%s' '$requirements64' | base64 -d > /app/requirements.txt
+apt-get update
+apt-get install -y --no-install-recommends python3 python3-pip python3-venv libgl1 libglib2.0-0 ffmpeg ca-certificates
+rm -rf /var/lib/apt/lists/*
 python3 -m venv /opt/venv
-export PATH=/opt/venv/bin:$PATH
-pip install --upgrade pip
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-pip install diffusers>=0.32.0 transformers accelerate pillow fastapi uvicorn imageio imageio-ffmpeg
+/opt/venv/bin/python -m pip install --upgrade pip setuptools wheel
+/opt/venv/bin/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+/opt/venv/bin/python -m pip install -r /app/requirements.txt
 cd /app
-uvicorn video_server:app --host 0.0.0.0 --port 7860 &
+exec /opt/venv/bin/python -m uvicorn video_server:app --host 0.0.0.0 --port 7860
 "@
-
-    # Create temp file for onstart
-    $onstartFile = Join-Path $env:TEMP "vast_onstart.sh"
-    $onstartScript | Out-File -FilePath $onstartFile -Encoding ascii -NoNewline
-
-    $result = vast create instance $OfferId `
-        --image $imageName `
-        --disk 20 `
-        --onstart $onstartFile `
-        --env "-p 7860:7860/tcp" `
-        --raw 2>&1
-
-    # Extract instance ID from result
-    $instanceId = $null
-    if ($result -match '"id"\s*:\s*(\d+)') {
-        $instanceId = $matches[1]
-    } elseif ($result -match '(\d+)') {
-        $instanceId = $matches[1]
-    }
-
-    if ($instanceId) {
-        $instanceId | Out-File -FilePath $InstanceFile -NoNewline
-        Write-OK "Instance created: ID $instanceId"
-        return $instanceId
-    }
-
-    Write-Err "Failed to create instance. Output: $result"
-    return $null
+    $path = Join-Path $env:TEMP ("gvs-vast-{0}.sh" -f [Guid]::NewGuid().ToString("N"))
+    $script | Out-File $path -Encoding ascii -NoNewline
+    return $path
 }
 
-function Copy-ServerFiles {
-    param([string]$InstanceId)
-
-    Write-Step "Copying server files to instance..."
-    
-    $serverFile = Join-Path $ServerDir "video_server.py"
-    $requirementsFile = Join-Path $ServerDir "requirements.txt"
-
-    # Wait for instance to be running
-    Write-Step "Waiting for instance to boot..."
-    $maxWait = 120
-    $waited = 0
-    do {
-        Start-Sleep -Seconds 5
-        $waited += 5
-        $state = vast show instances --raw 2>&1 | Select-String $InstanceId
-        if ($state -match "running") { break }
-        if ($waited -ge $maxWait) {
-            Write-Warn "Instance still initializing after $maxWait seconds -- continuing anyway."
-            break
-        }
-        Write-Host "." -NoNewline -ForegroundColor DarkGray
-    } while ($true)
-    Write-Host ""
-
-    # Copy files via vast CLI
-    vast copy $InstanceId "$serverFile" /app/video_server.py 2>&1 | Out-Null
-    vast copy $InstanceId "$requirementsFile" /app/requirements.txt 2>&1 | Out-Null
-    
-    Write-OK "Server files copied."
-}
-
-function Get-InstanceUrl {
-    param([string]$InstanceId)
-
-    Write-Step "Getting instance connection details..."
-    
-    $raw = vast show instances --raw 2>&1
-    $lines = $raw -split "`n"
-    
-    foreach ($line in $lines) {
-        if ($line -match $InstanceId) {
-            # Try to extract IP and port mapping
-            $parts = $line -split "\s+"
-            foreach ($part in $parts) {
-                # Look for IP:port pattern
-                if ($part -match '(\d+\.\d+\.\d+\.\d+):(\d+)') {
-                    $ip = $matches[1]
-                    $port = $matches[2]
-                    return "http://${ip}:$port"
-                }
-            }
-            # Try columns-based parse
-            if ($parts.Count -ge 10) {
-                $ipCol = $parts | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+$' } | Select-Object -First 1
-                if ($ipCol) {
-                    return "http://${ipCol}:7860"
-                }
-            }
-        }
+function Create-Instance([string]$OfferId) {
+    $onstart = $null
+    try {
+        $onstart = New-OnstartFile
+        $json = (Invoke-Vast @("create", "instance", $OfferId, "--image", "nvidia/cuda:12.4.0-cudnn-runtime-ubuntu22.04", "--disk", "$DiskGb", "--ssh", "--env", "-p 7860:7860/tcp", "--onstart", $onstart, "--label", "GrokVideoStudio", "--cancel-unavail", "--raw")) -join "`n"
+        $result = $json | ConvertFrom-Json
+        $id = if ($result.new_contract) { $result.new_contract } elseif ($result.id) { $result.id } else { $null }
+        if (-not $id) { throw "Instance was created but no instance ID was returned: $json" }
+        [string]$id | Out-File $InstanceFile -Encoding ascii -NoNewline
+        Write-OK "Instance created: $id"
+        return [string]$id
+    } catch {
+        Write-Err $_.Exception.Message
+        return $null
+    } finally {
+        if ($onstart -and (Test-Path $onstart)) { Remove-Item $onstart -Force -ErrorAction SilentlyContinue }
     }
-
-    return $null
 }
 
-function Wait-ServerReady {
-    param([string]$Url)
+function Get-Instance([string]$Id) {
+    $json = (Invoke-Vast @("show", "instance", $Id, "--raw")) -join "`n"
+    $result = $json | ConvertFrom-Json
+    if ($result.PSObject.Properties["instances"]) { return @($result.instances)[0] }
+    return $result
+}
 
-    Write-Step "Waiting for LTX-Video server to be ready..."
-    $maxWait = 300  # 5 minutes for model download
-    $waited = 0
-
-    while ($waited -lt $maxWait) {
+function Wait-ForUrl([string]$Id) {
+    Write-Step "Waiting for the instance and public port..."
+    $deadline = (Get-Date).AddMinutes(10)
+    while ((Get-Date) -lt $deadline) {
         try {
-            $response = Invoke-RestMethod -Uri "$Url/health" -TimeoutSec 10 -ErrorAction Stop
-            if ($response.status -eq "healthy") {
-                Write-OK "Server is healthy! GPU: $($response.gpu_available), VRAM: $($response.total_vram_gb)GB"
-                return $true
+            $instance = Get-Instance $Id
+            $ip = [string]$instance.public_ipaddr
+            $port = $null
+            if ($instance.ports) {
+                $mapping = $instance.ports.PSObject.Properties["7860/tcp"]
+                if ($mapping -and $mapping.Value) { $port = [string](@($mapping.Value)[0].HostPort) }
             }
-        } catch {
-            # Not ready yet
-        }
-
-        Start-Sleep -Seconds 10
-        $waited += 10
+            if ($ip -and $port) { return "http://${ip}:${port}" }
+        } catch { }
         Write-Host "." -NoNewline -ForegroundColor DarkGray
+        Start-Sleep 5
     }
-
     Write-Host ""
-    Write-Warn "Server not ready after $maxWait seconds. It may still be downloading models."
-    Write-Warn "Check back in a few minutes -- the URL is still valid."
-    return $false
+    return $null
 }
 
-function Stop-Instance {
-    Write-Header "Tearing down Vast.ai instance"
-
-    if (-not (Test-Path $InstanceFile)) {
-        Write-Err "No saved instance ID found. Use 'vast show instances' to find it manually."
-        return
+function Wait-ForHealth([string]$Url) {
+    Write-Step "Waiting for the LTX-Video server to finish installing..."
+    $deadline = (Get-Date).AddMinutes(15)
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $health = Invoke-RestMethod "$($Url.TrimEnd('/'))/health" -TimeoutSec 10
+            if ($health.status -eq "healthy") {
+                Write-OK "Server is healthy. GPU: $($health.gpu_available); VRAM: $($health.total_vram_gb) GB"
+                return
+            }
+        } catch { }
+        Write-Host "." -NoNewline -ForegroundColor DarkGray
+        Start-Sleep 10
     }
+    Write-Warn "Server is not healthy yet. The instance is still active and billing."
+}
 
-    $instanceId = Get-Content $InstanceFile -Raw
-    Write-Step "Destroying instance $instanceId..."
-    
-    vast destroy instance $instanceId --raw 2>&1 | Out-Null
+function Destroy-SavedInstance {
+    if (-not (Test-Path $InstanceFile)) { Write-Warn "No saved instance ID found."; return }
+    $id = (Get-Content $InstanceFile -Raw).Trim()
+    Invoke-Vast @("destroy", "instance", $id, "--raw") | Out-Null
     Remove-Item $InstanceFile -Force
-    Write-OK "Instance destroyed."
+    Write-OK "Instance $id destroyed. Billing stopped."
 }
-
-function Show-Instances {
-    Write-Header "Vast.ai Instances"
-    vast show instances 2>&1
-}
-
-function Show-Status {
-    if (-not (Test-Path $InstanceFile)) {
-        Write-Warn "No active instance."
-        return
-    }
-    $instanceId = Get-Content $InstanceFile -Raw
-    Write-Header "Instance $instanceId Status"
-    vast show instances --raw 2>&1 | Select-String $instanceId
-}
-
-#  Main 
-
-if ($ListInstances) { Show-Instances; exit 0 }
-if ($Status) { Show-Status; exit 0 }
-if ($Teardown) { Stop-Instance; exit 0 }
 
 Write-Header "GrokVideoStudio -> Vast.ai Cloud GPU"
+if (-not (Ensure-VastCli)) { exit 1 }
+if (-not (Ensure-ApiKey)) { exit 1 }
 
-# Tier selection
+if ($ListInstances) { Invoke-Vast @("show", "instances") | ForEach-Object { Write-Host $_ }; exit 0 }
+if ($Status) {
+    if (Test-Path $InstanceFile) { Invoke-Vast @("show", "instance", (Get-Content $InstanceFile -Raw).Trim()) | ForEach-Object { Write-Host $_ } }
+    else { Write-Warn "No saved instance ID found." }
+    exit 0
+}
+if ($Teardown) { Destroy-SavedInstance; exit 0 }
+
 if ($Tier -eq "Auto") {
-    Write-Host "  Available GPU tiers:" -ForegroundColor White
-    Write-Host "  [1] RTX 4090 (24GB)  ~$0.30-0.40/hr  (recommended)" -ForegroundColor White
-    Write-Host "  [2] A100 (80GB)     ~$1.00-1.50/hr  (heavy duty)" -ForegroundColor White
-    Write-Host "  [3] H100 (80GB)     ~$2.00-3.00/hr  (maximum)" -ForegroundColor White
-    Write-Host "  [4] Auto            cheapest 16GB+   (budget)" -ForegroundColor White
-    Write-Host ""
-    $choice = Read-Host "  Pick a tier [1-4, enter for 1]"
-    switch ($choice) {
+    Write-Host "  [1] RTX 4090`n  [2] A100`n  [3] H100`n  [4] Auto"
+    switch (Read-Host "  Pick a tier [1-4, Enter for 1]") {
         "2" { $Tier = "A100" }
         "3" { $Tier = "H100" }
         "4" { $Tier = "Auto" }
         default { $Tier = "4090" }
     }
 }
-
 Write-Host "  Selected tier: $Tier" -ForegroundColor Cyan
-Write-Host ""
 
-# Step 1: Ensure CLI
-if (-not (Ensure-VastCli)) { exit 1 }
-
-# Step 2: API key
-if (-not (Ensure-VastApiKey)) { exit 1 }
-
-# Step 3: Search for offers
-$offerId = Search-Instances
-if (-not $offerId) {
-    Write-Err "No suitable offers found."
+$offerId = Search-Offers
+if (-not $offerId) { exit 1 }
+$id = Create-Instance $offerId
+if (-not $id) { exit 1 }
+$url = Wait-ForUrl $id
+if (-not $url) {
+    Write-Err "Could not resolve the public URL. Instance $id is active and billing."
+    Write-Warn "Run this script with -Teardown to stop it."
     exit 1
 }
-Write-OK "Selected offer: $offerId"
 
-# Step 4: Create instance
-$instanceId = Provision-Instance -OfferId $offerId
-if (-not $instanceId) { exit 1 }
-
-# Step 5: Copy server files
-Copy-ServerFiles -InstanceId $instanceId
-
-# Step 6: Get URL
-$url = Get-InstanceUrl -InstanceId $instanceId
-if (-not $url) {
-    Write-Warn "Could not auto-detect URL. Run 'vast show instances' to find the IP."
-    Write-Step "Look for the ports column -- find 7860 -> connect_ip:port"
-    Write-Host ""
-    $manualUrl = Read-Host "  Paste the URL (http://IP:PORT)"
-    if ($manualUrl) { $url = $manualUrl }
-}
-
-if ($url) {
-    Write-Host ""
-    Write-Host "  ===================================================" -ForegroundColor Green
-    Write-Host "  SERVER URL: $url" -ForegroundColor Green
-    Write-Host "  ===================================================" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "  Paste this into Settings -> Local Server URL" -ForegroundColor White
-    Write-Host "  Then click Test Connection" -ForegroundColor White
-    Write-Host ""
-    Write-Host "  To stop the instance later:" -ForegroundColor DarkGray
-    Write-Host "    .\vast_provision.ps1 -Teardown" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Step "Checking server health (this may take a few minutes for model download)..."
-    Wait-ServerReady -Url $url
-} else {
-    Write-Warn "Could not determine URL automatically."
-    Write-Host "  Run: vast show instances" -ForegroundColor White
-    Write-Host "  Find your instance and look for the connect URL" -ForegroundColor White
-}
-
-Write-Host ""
-Write-Host "Done!" -ForegroundColor Green
+Write-Host "`n  SERVER URL: $url`n" -ForegroundColor Green
+Write-Host "  Paste this into Settings -> Local Server URL."
+Write-Host "  Stop billing with: .\vast_provision.ps1 -Teardown`n"
+Wait-ForHealth $url
+Write-Host "Done." -ForegroundColor Green
