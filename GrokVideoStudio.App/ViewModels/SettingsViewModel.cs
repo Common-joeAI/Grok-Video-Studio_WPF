@@ -639,7 +639,7 @@ public partial class SettingsViewModel : ObservableObject
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $("-NoProfile -ExecutionPolicy Bypass -File '{scriptPath}'"),
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File '{scriptPath}'",
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
