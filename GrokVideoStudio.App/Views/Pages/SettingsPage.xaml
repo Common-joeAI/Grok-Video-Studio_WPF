@@ -12,371 +12,464 @@
     Title="Settings">
 
     <!--
-      Settings page — API keys, OAuth connections, models, pipeline defaults, theme.
-      Social platforms now use browser-based OAuth2 authentication.
+      Settings page — organized into sections:
+      1. API Keys (xAI, OpenAI, Ollama, Seedance)
+      2. Video Generation (Local GPU, Vast Cloud GPU)
+      3. Social Publishing (YouTube, Facebook, Instagram, TikTok)
+      4. Pipeline & Tools (FFmpeg, Generation Defaults)
+      5. Appearance (Theme)
     -->
 
     <Grid Margin="32,24,32,32">
         <StackPanel MaxWidth="720" helpers:StackPanelHelper.Spacing="20">
 
-            <!-- ── Header ── -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  HEADER                                                  -->
+            <!-- ════════════════════════════════════════════════════ -->
             <StackPanel helpers:StackPanelHelper.Spacing="4">
                 <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" />
-                <TextBlock Text="Configure API keys, OAuth connections, and pipeline defaults" FontSize="14" Opacity="0.6" />
+                <TextBlock Text="Configure API keys, video generation backends, and pipeline defaults" FontSize="14" Opacity="0.6" />
             </StackPanel>
 
-            <!-- ── xAI Grok ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Key24" FontSize="18" />
-                        <TextBlock Text="xAI Grok API" FontWeight="Medium" />
-                    </StackPanel>
-                    <ui:PasswordBox Password="{Binding GrokApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Chat Model" />
-                        </StackPanel>
-                        <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GrokChatModel}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Video Model" />
-                        </StackPanel>
-                        <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding GrokVideoModel}" Margin="0,0,0,10" />
-                    </Grid>
-                    <!-- Test row -->
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
-                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
-                                   Command="{Binding TestGrokKeyCommand}" Padding="16,6">
-                            <ui:Button.Style>
-                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsTestingGrok}" Value="True">
-                                            <Setter Property="IsEnabled" Value="False"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
-                                         Visibility="{Binding IsTestingGrok, Converter={StaticResource CustomBoolToVisConverter}}" />
-                        <TextBlock Text="{Binding GrokTestResult}" VerticalAlignment="Center" FontSize="13"
-                                   Opacity="0.85" TextWrapping="Wrap" />
-                    </StackPanel>
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SECTION 1: API KEYS                                     -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <!-- Section header -->
+                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" Margin="0,8,0,0">
+                    <ui:SymbolIcon Symbol="Key24" FontSize="16" Opacity="0.7" />
+                    <TextBlock Text="API KEYS" FontSize="12" FontWeight="SemiBold" Opacity="0.7" />
+                    <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
-            </Border>
 
-            <!-- ── OpenAI ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Lightbulb24" FontSize="18" />
-                        <TextBlock Text="OpenAI API" FontWeight="Medium" />
-                    </StackPanel>
-                    <ui:PasswordBox Password="{Binding OpenAiApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
-                    <Grid ColumnDefinitions="Auto,*">
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
-                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Chat Model" />
+                <!-- ── xAI Grok ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" />
+                            <TextBlock Text="xAI Grok API" FontWeight="Medium" />
                         </StackPanel>
-                        <ui:TextBox Grid.Column="1" Text="{Binding OpenAiChatModel}" />
-                    </Grid>
-                    <!-- Test row -->
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
-                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
-                                   Command="{Binding TestOpenAiKeyCommand}" Padding="16,6">
-                            <ui:Button.Style>
-                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsTestingOpenAi}" Value="True">
-                                            <Setter Property="IsEnabled" Value="False"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
-                                         Visibility="{Binding IsTestingOpenAi, Converter={StaticResource CustomBoolToVisConverter}}" />
-                        <TextBlock Text="{Binding OpenAiTestResult}" VerticalAlignment="Center" FontSize="13"
-                                   Opacity="0.85" TextWrapping="Wrap" />
+                        <ui:PasswordBox Password="{Binding GrokApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="xai-…" />
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Chat Model" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GrokChatModel}" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Video Model" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding GrokVideoModel}" Margin="0,0,0,10" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                            <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                       Command="{Binding TestGrokKeyCommand}" Padding="16,6">
+                                <ui:Button.Style>
+                                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTestingGrok}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:Button.Style>
+                            </ui:Button>
+                            <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                             Visibility="{Binding IsTestingGrok, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            <TextBlock Text="{Binding GrokTestResult}" VerticalAlignment="Center" FontSize="13"
+                                       Opacity="0.85" TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
+                </Border>
+
+                <!-- ── OpenAI ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Brain24" FontSize="18" />
+                            <TextBlock Text="OpenAI API" FontWeight="Medium" />
+                        </StackPanel>
+                        <ui:PasswordBox Password="{Binding OpenAiApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="sk-…" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Chat Model" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" Text="{Binding OpenAiChatModel}" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                            <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                       Command="{Binding TestOpenAiKeyCommand}" Padding="16,6">
+                                <ui:Button.Style>
+                                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTestingOpenAi}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:Button.Style>
+                            </ui:Button>
+                            <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                             Visibility="{Binding IsTestingOpenAi, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            <TextBlock Text="{Binding OpenAiTestResult}" VerticalAlignment="Center" FontSize="13"
+                                       Opacity="0.85" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Ollama ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="18" />
+                            <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
+                        </StackPanel>
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Link24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="API Base" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OllamaApiBase}" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Model" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OllamaChatModel}" Margin="0,0,0,10" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Seedance ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
+                            <TextBlock Text="Seedance API" FontWeight="Medium" />
+                        </StackPanel>
+                        <ui:PasswordBox Password="{Binding SeedanceApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
+                            <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
+                                       Command="{Binding TestSeedanceKeyCommand}" Padding="16,6">
+                                <ui:Button.Style>
+                                    <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTestingSeedance}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:Button.Style>
+                            </ui:Button>
+                            <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
+                                             Visibility="{Binding IsTestingSeedance, Converter={StaticResource CustomBoolToVisConverter}}" />
+                            <TextBlock Text="{Binding SeedanceTestResult}" VerticalAlignment="Center" FontSize="13"
+                                       Opacity="0.85" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SECTION 2: VIDEO GENERATION                              -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <!-- Section header -->
+                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" Margin="0,8,0,0">
+                    <ui:SymbolIcon Symbol="Video24" FontSize="16" Opacity="0.7" />
+                    <TextBlock Text="VIDEO GENERATION" FontSize="12" FontWeight="SemiBold" Opacity="0.7" />
+                    <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
-            </Border>
 
-            <!-- ── Ollama ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Lightbulb24" FontSize="18" />
-                        <TextBlock Text="Ollama (Local)" FontWeight="Medium" />
+                <!-- ── Local GPU Server ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Desktop24" FontSize="18" />
+                            <TextBlock Text="Local GPU Server" FontWeight="Medium" />
+                        </StackPanel>
+                        <TextBlock Text="Run LTX-Video on your own GPU — zero API cost per clip. Auto-detects VRAM for 480p/720p."
+                                   FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <TextBlock Text="Server URL" VerticalAlignment="Center" Width="100" />
+                            <ui:TextBox Text="{Binding LocalServerUrl}" PlaceholderText="http://localhost:7860" MinWidth="250" />
+                            <ui:Button Content="Start Server" Icon="{ui:SymbolIcon Play24}" Appearance="Primary"
+                                       Command="{Binding StartLocalServerCommand}" Padding="12,6" />
+                            <ui:Button Content="Test" Icon="{ui:SymbolIcon PlugConnected24}" Appearance="Secondary"
+                                       Command="{Binding TestLocalServerCommand}" Padding="12,6" />
+                        </StackPanel>
+                        <TextBlock Text="First run auto-creates a Python venv and installs PyTorch + dependencies."
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
                     </StackPanel>
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Link24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="API Base" />
+                </Border>
+
+                <!-- ── Vast.ai Cloud GPU ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Cloud24" FontSize="18" />
+                            <TextBlock Text="Vast.ai Cloud GPU" FontWeight="Medium" />
                         </StackPanel>
-                        <ui:TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OllamaApiBase}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Chat24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Model" />
+                        <TextBlock Text="Rent a cloud GPU on demand — RTX 4090 (~$0.30/hr), A100 (~$1.50/hr), or H100 (~$2.50/hr). Deploys the same LTX-Video server and gives you a URL to paste above."
+                                   FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" Margin="0">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Key24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Vast API Key" />
+                            </StackPanel>
+                            <ui:PasswordBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                           Password="{Binding VastApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           PlaceholderText="Get key at vast.ai/console/api…" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Processing24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="GPU Tier" />
+                            </StackPanel>
+                            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding VastGpuTiers}" SelectedItem="{Binding VastGpuTier}" Margin="0,0,0,10" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:Button Content="Start Cloud GPU" Icon="{ui:SymbolIcon Cloud24}" Appearance="Primary"
+                                       Command="{Binding StartVastServerCommand}" Padding="16,6" />
+                            <ui:Button Content="Stop Instance" Icon="{ui:SymbolIcon Delete24}" Appearance="Caution"
+                                       Command="{Binding StopVastServerCommand}" Padding="16,6" />
                         </StackPanel>
-                        <ui:TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OllamaChatModel}" Margin="0,0,0,10" />
-                    </Grid>
+                        <TextBlock Text="Start rents a GPU, deploys the server, and prints the URL. Paste it into Local Server URL above and click Test. Stop destroys the instance to stop billing."
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SECTION 3: SOCIAL PUBLISHING                             -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <!-- Section header -->
+                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" Margin="0,8,0,0">
+                    <ui:SymbolIcon Symbol="Share24" FontSize="16" Opacity="0.7" />
+                    <TextBlock Text="SOCIAL PUBLISHING" FontSize="12" FontWeight="SemiBold" Opacity="0.7" />
+                    <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
-            </Border>
 
-            <!-- ── Seedance ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" />
-                        <TextBlock Text="Seedance API" FontWeight="Medium" />
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="16">
+                        <TextBlock Text="Register OAuth apps at each platform's developer console, enter credentials, then click Connect to authenticate via browser."
+                                   FontSize="13" Opacity="0.6" TextWrapping="Wrap" />
+
+                        <!-- ── YouTube ── -->
+                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                            <StackPanel helpers:StackPanelHelper.Spacing="10">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:SymbolIcon Symbol="Video24" FontSize="16" />
+                                    <TextBlock Text="YouTube" FontWeight="SemiBold" />
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                        <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                    </Border>
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsYouTubeConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                        <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                    </Border>
+                                </StackPanel>
+                                <ui:TextBox Text="{Binding YouTubeApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Path to Google client_secrets.json" />
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:Button Content="Connect YouTube" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                               Command="{Binding ConnectYouTubeCommand}" Padding="16,6" />
+                                    <ui:Button Content="Disconnect" Appearance="Caution"
+                                               Command="{Binding DisconnectYouTubeCommand}" Padding="16,6"
+                                               Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                    <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                     Visibility="{Binding IsYouTubeConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ── Facebook ── -->
+                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                            <StackPanel helpers:StackPanelHelper.Spacing="10">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:SymbolIcon Symbol="Globe24" FontSize="16" />
+                                    <TextBlock Text="Facebook" FontWeight="SemiBold" />
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                        <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                    </Border>
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsFacebookConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                        <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                    <ui:TextBox Text="{Binding FacebookClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
+                                    <ui:PasswordBox Password="{Binding FacebookClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:Button Content="Connect Facebook" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                               Command="{Binding ConnectFacebookCommand}" Padding="16,6" />
+                                    <ui:Button Content="Disconnect" Appearance="Caution"
+                                               Command="{Binding DisconnectFacebookCommand}" Padding="16,6"
+                                               Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                    <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                     Visibility="{Binding IsFacebookConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ── Instagram ── -->
+                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                            <StackPanel helpers:StackPanelHelper.Spacing="10">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:SymbolIcon Symbol="Image24" FontSize="16" />
+                                    <TextBlock Text="Instagram" FontWeight="SemiBold" />
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                        <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                    </Border>
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsInstagramConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                        <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                    <ui:TextBox Text="{Binding InstagramClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
+                                    <ui:PasswordBox Password="{Binding InstagramClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:Button Content="Connect Instagram" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                               Command="{Binding ConnectInstagramCommand}" Padding="16,6" />
+                                    <ui:Button Content="Disconnect" Appearance="Caution"
+                                               Command="{Binding DisconnectInstagramCommand}" Padding="16,6"
+                                               Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                    <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                     Visibility="{Binding IsInstagramConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ── TikTok ── -->
+                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
+                            <StackPanel helpers:StackPanelHelper.Spacing="10">
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:SymbolIcon Symbol="MusicNote124" FontSize="16" />
+                                    <TextBlock Text="TikTok" FontWeight="SemiBold" />
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}">
+                                        <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
+                                    </Border>
+                                    <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
+                                            Visibility="{Binding IsTikTokConnected, Converter={StaticResource InverseBoolToVisConverter}}">
+                                        <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel helpers:StackPanelHelper.Spacing="8">
+                                    <ui:TextBox Text="{Binding TikTokClientKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Key" />
+                                    <ui:PasswordBox Password="{Binding TikTokClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Secret" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                                    <ui:Button Content="Connect TikTok" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
+                                               Command="{Binding ConnectTikTokCommand}" Padding="16,6" />
+                                    <ui:Button Content="Disconnect" Appearance="Caution"
+                                               Command="{Binding DisconnectTikTokCommand}" Padding="16,6"
+                                               Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                    <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                                                     Visibility="{Binding IsTikTokConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                    <ui:PasswordBox Password="{Binding SeedanceApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Seedance key…" />
-                    <!-- Test row -->
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
-                        <ui:Button Content="Test Key" Icon="{ui:SymbolIcon Checkmark24}"
-                                   Command="{Binding TestSeedanceKeyCommand}" Padding="16,6">
-                            <ui:Button.Style>
-                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsTestingSeedance}" Value="True">
-                                            <Setter Property="IsEnabled" Value="False"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18"
-                                         Visibility="{Binding IsTestingSeedance, Converter={StaticResource CustomBoolToVisConverter}}" />
-                        <TextBlock Text="{Binding SeedanceTestResult}" VerticalAlignment="Center" FontSize="13"
-                                   Opacity="0.85" TextWrapping="Wrap" />
-                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SECTION 4: PIPELINE & TOOLS                              -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <!-- Section header -->
+                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" Margin="0,8,0,0">
+                    <ui:SymbolIcon Symbol="Settings24" FontSize="16" Opacity="0.7" />
+                    <TextBlock Text="PIPELINE &amp; TOOLS" FontSize="12" FontWeight="SemiBold" Opacity="0.7" />
+                    <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
-            </Border>
 
-            <!-- ── Social Publishing (OAuth) ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="16">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Share24" FontSize="18" />
-                        <TextBlock Text="Social Publishing — OAuth Connections" FontWeight="Medium" />
+                <!-- ── FFmpeg ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Code24" FontSize="18" />
+                            <TextBlock Text="FFmpeg" FontWeight="Medium" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="Path" VerticalAlignment="Center" Width="100" />
+                            <ui:TextBox Text="{Binding FfmpegPath}" PlaceholderText="ffmpeg" MinWidth="200" />
+                            <ui:Button Content="Test" Icon="{ui:SymbolIcon Checkmark24}" Appearance="Secondary" Command="{Binding TestFfmpegCommand}" Padding="12,6" />
+                        </StackPanel>
                     </StackPanel>
-                    <TextBlock Text="Register OAuth apps at each platform's developer console, enter the client credentials, then click Connect to authenticate via browser." FontSize="13" Opacity="0.6" TextWrapping="Wrap" />
+                </Border>
 
-                    <!-- ── YouTube ── -->
-                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
-                        <StackPanel helpers:StackPanelHelper.Spacing="10">
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:SymbolIcon Symbol="Video24" FontSize="16" />
-                                <TextBlock Text="YouTube" FontWeight="SemiBold" />
-                                <!-- Status badge -->
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}">
-                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
-                                </Border>
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsYouTubeConnected, Converter={StaticResource InverseBoolToVisConverter}}">
-                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
-                                </Border>
-                            </StackPanel>
-                            <ui:TextBox Text="{Binding YouTubeApiKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Path to Google client_secrets.json" />
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:Button Content="Connect YouTube" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
-                                           Command="{Binding ConnectYouTubeCommand}" Padding="16,6" />
-                                <ui:Button Content="Disconnect" Appearance="Caution"
-                                           Command="{Binding DisconnectYouTubeCommand}" Padding="16,6"
-                                           Visibility="{Binding IsYouTubeConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
-                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
-                                                 Visibility="{Binding IsYouTubeConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
-                            </StackPanel>
+                <!-- ── Generation defaults ── -->
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Options24" FontSize="18" />
+                            <TextBlock Text="Generation Defaults" FontWeight="Medium" />
                         </StackPanel>
-                    </Border>
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Timer24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Duration (s)" />
+                            </StackPanel>
+                            <ui:NumberBox Grid.Row="0" Grid.Column="1" Value="{Binding DefaultDuration}" Minimum="1" Maximum="15" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Aspect Ratio" />
+                            </StackPanel>
+                            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Resolution" />
+                            </StackPanel>
+                            <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="Clock24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Poll Interval (s)" />
+                            </StackPanel>
+                            <ui:NumberBox Grid.Row="3" Grid.Column="1" Value="{Binding PollIntervalSeconds}" Minimum="2" Maximum="60" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
+                                <ui:SymbolIcon Symbol="ArrowSync24" FontSize="14" Opacity="0.5" />
+                                <TextBlock Text="Max Poll Attempts" />
+                            </StackPanel>
+                            <ui:NumberBox Grid.Row="4" Grid.Column="1" Value="{Binding MaxPollAttempts}" Minimum="10" Maximum="500" Margin="0,0,0,10" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
 
-                    <!-- ── Facebook ── -->
-                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
-                        <StackPanel helpers:StackPanelHelper.Spacing="10">
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:SymbolIcon Symbol="Globe24" FontSize="16" />
-                                <TextBlock Text="Facebook" FontWeight="SemiBold" />
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}">
-                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
-                                </Border>
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsFacebookConnected, Converter={StaticResource InverseBoolToVisConverter}}">
-                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
-                                </Border>
-                            </StackPanel>
-                            <StackPanel helpers:StackPanelHelper.Spacing="8">
-                                <ui:TextBox Text="{Binding FacebookClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
-                                <ui:PasswordBox Password="{Binding FacebookClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:Button Content="Connect Facebook" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
-                                           Command="{Binding ConnectFacebookCommand}" Padding="16,6" />
-                                <ui:Button Content="Disconnect" Appearance="Caution"
-                                           Command="{Binding DisconnectFacebookCommand}" Padding="16,6"
-                                           Visibility="{Binding IsFacebookConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
-                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
-                                                 Visibility="{Binding IsFacebookConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- ── Instagram ── -->
-                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
-                        <StackPanel helpers:StackPanelHelper.Spacing="10">
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:SymbolIcon Symbol="Image24" FontSize="16" />
-                                <TextBlock Text="Instagram" FontWeight="SemiBold" />
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}">
-                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
-                                </Border>
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsInstagramConnected, Converter={StaticResource InverseBoolToVisConverter}}">
-                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
-                                </Border>
-                            </StackPanel>
-                            <StackPanel helpers:StackPanelHelper.Spacing="8">
-                                <ui:TextBox Text="{Binding InstagramClientId, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App ID (Client ID)" />
-                                <ui:PasswordBox Password="{Binding InstagramClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="App Secret (Client Secret)" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:Button Content="Connect Instagram" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
-                                           Command="{Binding ConnectInstagramCommand}" Padding="16,6" />
-                                <ui:Button Content="Disconnect" Appearance="Caution"
-                                           Command="{Binding DisconnectInstagramCommand}" Padding="16,6"
-                                           Visibility="{Binding IsInstagramConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
-                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
-                                                 Visibility="{Binding IsInstagramConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- ── TikTok ── -->
-                    <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="16">
-                        <StackPanel helpers:StackPanelHelper.Spacing="10">
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:SymbolIcon Symbol="MusicNote124" FontSize="16" />
-                                <TextBlock Text="TikTok" FontWeight="SemiBold" />
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}">
-                                    <TextBlock Text="✓ Connected" FontSize="11" Foreground="#4CAF50" />
-                                </Border>
-                                <Border CornerRadius="10" Padding="8,2" Margin="8,0,0,0"
-                                        Visibility="{Binding IsTikTokConnected, Converter={StaticResource InverseBoolToVisConverter}}">
-                                    <TextBlock Text="Not connected" FontSize="11" Opacity="0.5" />
-                                </Border>
-                            </StackPanel>
-                            <StackPanel helpers:StackPanelHelper.Spacing="8">
-                                <ui:TextBox Text="{Binding TikTokClientKey, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Key" />
-                                <ui:PasswordBox Password="{Binding TikTokClientSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Client Secret" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                                <ui:Button Content="Connect TikTok" Icon="{ui:SymbolIcon Link24}" Appearance="Primary"
-                                           Command="{Binding ConnectTikTokCommand}" Padding="16,6" />
-                                <ui:Button Content="Disconnect" Appearance="Caution"
-                                           Command="{Binding DisconnectTikTokCommand}" Padding="16,6"
-                                           Visibility="{Binding IsTikTokConnected, Converter={StaticResource CustomBoolToVisConverter}}" />
-                                <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
-                                                 Visibility="{Binding IsTikTokConnecting, Converter={StaticResource CustomBoolToVisConverter}}" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SECTION 5: APPEARANCE                                    -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel helpers:StackPanelHelper.Spacing="12">
+                <!-- Section header -->
+                <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8" Margin="0,8,0,0">
+                    <ui:SymbolIcon Symbol="Color24" FontSize="16" Opacity="0.7" />
+                    <TextBlock Text="APPEARANCE" FontSize="12" FontWeight="SemiBold" Opacity="0.7" />
+                    <Border Height="1" Background="{DynamicResource ControlElevationBorderBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
-            </Border>
 
-            <!-- ── Local GPU Server ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Desktop24" FontSize="18" />
-                        <TextBlock Text="Local GPU Server" FontWeight="Medium" />
+                <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
+                    <StackPanel helpers:StackPanelHelper.Spacing="12">
+                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                            <ui:SymbolIcon Symbol="Color24" FontSize="18" />
+                            <TextBlock Text="Theme" FontWeight="Medium" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
                     </StackPanel>
-                    <TextBlock Text="Run a local video generation server on your GPU — zero API cost per clip. Uses LTX-Video (Lightricks)."
-                               FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <TextBlock Text="Server URL" VerticalAlignment="Center" Width="100" />
-                        <ui:TextBox Text="{Binding LocalServerUrl}" PlaceholderText="http://localhost:7860" MinWidth="250" />
-                        <ui:Button Content="Start Server" Icon="{ui:SymbolIcon Play24}" Appearance="Primary"
-                                   Command="{Binding StartLocalServerCommand}" Padding="12,6" />
-                        <ui:Button Content="Test Connection" Icon="{ui:SymbolIcon PlugConnected24}" Appearance="Secondary"
-                                   Command="{Binding TestLocalServerCommand}" Padding="12,6" />
-                    </StackPanel>
-                    <TextBlock Text="Click Start Server to launch the LTX-Video server — auto-creates venv and installs dependencies on first run."
-                               FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
-                </StackPanel>
-            </Border>
+                </Border>
+            </StackPanel>
 
-            <!-- ── FFmpeg & Tools ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Code24" FontSize="18" />
-                        <TextBlock Text="FFmpeg &amp; Tools" FontWeight="Medium" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="FolderOpen24" FontSize="14" Opacity="0.5" />
-                        <TextBlock Text="FFmpeg Path" VerticalAlignment="Center" Width="100" />
-                        <ui:TextBox Text="{Binding FfmpegPath}" PlaceholderText="ffmpeg" MinWidth="200" />
-                        <ui:Button Content="Test" Icon="{ui:SymbolIcon Checkmark24}" Appearance="Secondary" Command="{Binding TestFfmpegCommand}" Padding="12,6" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- ── Generation defaults ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Options24" FontSize="18" />
-                        <TextBlock Text="Generation Defaults" FontWeight="Medium" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Timer24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Duration (s)" />
-                        </StackPanel>
-                        <ui:NumberBox Grid.Row="0" Grid.Column="1" Value="{Binding DefaultDuration}" Minimum="1" Maximum="15" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Aspect Ratio" />
-                        </StackPanel>
-                        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AspectRatios}" SelectedItem="{Binding DefaultAspectRatio}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="2" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Video24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Resolution" />
-                        </StackPanel>
-                        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Resolutions}" SelectedItem="{Binding DefaultResolution}" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="3" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="Clock24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Poll Interval (s)" />
-                        </StackPanel>
-                        <ui:NumberBox Grid.Row="3" Grid.Column="1" Value="{Binding PollIntervalSeconds}" Minimum="2" Maximum="60" Margin="0,0,0,10" />
-                        <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="4" VerticalAlignment="Center" Margin="0,0,16,10">
-                            <ui:SymbolIcon Symbol="ArrowSync24" FontSize="14" Opacity="0.5" />
-                            <TextBlock Text="Max Poll Attempts" />
-                        </StackPanel>
-                        <ui:NumberBox Grid.Row="4" Grid.Column="1" Value="{Binding MaxPollAttempts}" Minimum="10" Maximum="500" Margin="0,0,0,10" />
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- ── Theme ── -->
-            <Border Style="{StaticResource CardBorderStyle}" Padding="20" CornerRadius="8">
-                <StackPanel helpers:StackPanelHelper.Spacing="12">
-                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
-                        <ui:SymbolIcon Symbol="Color24" FontSize="18" />
-                        <TextBlock Text="Theme" FontWeight="Medium" />
-                    </StackPanel>
-                    <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
-                </StackPanel>
-            </Border>
-
-            <!-- ── Save bar ── -->
-            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="16">
+            <!-- ════════════════════════════════════════════════════ -->
+            <!--  SAVE BAR                                                 -->
+            <!-- ════════════════════════════════════════════════════ -->
+            <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="16" Margin="0,8,0,0">
                 <ui:Button Content="Save Settings" Icon="{ui:SymbolIcon Save24}" Appearance="Primary"
                            Command="{Binding SaveCommand}" Padding="24,10" />
                 <ui:Button Content="Clear All Keys" Icon="{ui:SymbolIcon Delete24}" Appearance="Caution"

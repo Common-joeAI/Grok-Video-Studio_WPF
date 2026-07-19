@@ -83,6 +83,9 @@ public partial class SettingsViewModel : ObservableObject
     // ── Misc ──
     [ObservableProperty] private string _ffmpegPath = "ffmpeg";
     [ObservableProperty] private string _localServerUrl = "http://localhost:7860";
+    [ObservableProperty] private string _vastApiKey = string.Empty;
+    [ObservableProperty] private string _vastGpuTier = "4090";  // 4090, A100, H100, Auto
+    public ObservableCollection<string> VastGpuTiers { get; } = ["4090", "A100", "H100", "Auto"];
     [ObservableProperty] private string _theme = "Dark";
     [ObservableProperty] private int _pollIntervalSeconds = 5;
     [ObservableProperty] private int _maxPollAttempts = 120;
@@ -161,6 +164,8 @@ public partial class SettingsViewModel : ObservableObject
         MusicMixPath = s.MusicMixPath;
         FfmpegPath = s.FfmpegPath;
             LocalServerUrl = string.IsNullOrEmpty(s.LocalServerUrl) ? "http://localhost:7860" : s.LocalServerUrl;
+            VastApiKey = s.VastApiKey ?? string.Empty;
+            VastGpuTier = string.IsNullOrEmpty(s.VastGpuTier) ? "4090" : s.VastGpuTier;
         Theme = s.Theme;
         PollIntervalSeconds = s.PollIntervalSeconds;
         MaxPollAttempts = s.MaxPollAttempts;
@@ -209,6 +214,8 @@ public partial class SettingsViewModel : ObservableObject
         MusicMixPath = MusicMixPath,
         FfmpegPath = FfmpegPath,
             LocalServerUrl = LocalServerUrl,
+            VastApiKey = VastApiKey,
+            VastGpuTier = VastGpuTier,
         Theme = Theme,
         PollIntervalSeconds = PollIntervalSeconds,
         MaxPollAttempts = MaxPollAttempts,
@@ -731,6 +738,90 @@ public partial class SettingsViewModel : ObservableObject
         _autoSaveTimer.Change(800, System.Threading.Timeout.Infinite);
     }
 
+    [RelayCommand]
+    private async Task StartVastServerAsync()
+    {
+        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
+        var candidates = new[]
+        {
+            System.IO.Path.Combine(exeDir, "local_server", "vast_provision.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "local_server", "vast_provision.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "vast_provision.ps1"),
+        };
+
+        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        if (scriptPath is null)
+        {
+            _activityLog.Log("Could not find vast_provision.ps1. Make sure the local_server folder exists in the repo.", LogLevel.Error);
+            return;
+        }
+
+        _activityLog.Log($"Starting Vast.ai cloud GPU provisioning (tier: {VastGpuTier})...", LogLevel.Information);
+
+        try
+        {
+            // Pass tier and API key as arguments
+            var args = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}' -Tier {VastGpuTier}";
+            if (!string.IsNullOrEmpty(VastApiKey))
+                args += $" -VastApiKey '{VastApiKey}'";
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = args,
+                UseShellExecute = true,
+                CreateNoWindow = false,
+                WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
+            };
+            System.Diagnostics.Process.Start(psi);
+            _activityLog.Log("Vast.ai provisioning window launching...", LogLevel.Information);
+        }
+        catch (Exception ex)
+        {
+            _activityLog.Log($"Failed to start Vast.ai provisioning: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task StopVastServerAsync()
+    {
+        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
+        var candidates = new[]
+        {
+            System.IO.Path.Combine(exeDir, "local_server", "vast_provision.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "local_server", "vast_provision.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "vast_provision.ps1"),
+        };
+
+        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        if (scriptPath is null)
+        {
+            _activityLog.Log("Could not find vast_provision.ps1.", LogLevel.Error);
+            return;
+        }
+
+        _activityLog.Log("Tearing down Vast.ai instance...", LogLevel.Information);
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}' -Teardown",
+                UseShellExecute = true,
+                CreateNoWindow = false,
+                WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
+            };
+            System.Diagnostics.Process.Start(psi);
+            _activityLog.Log("Vast.ai teardown window launching...", LogLevel.Information);
+        }
+        catch (Exception ex)
+        {
+            _activityLog.Log($"Failed to teardown Vast.ai instance: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+
     partial void OnGrokApiKeyChanged(string value)         { _activityLog.Log("xAI Grok API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
     partial void OnOpenAiApiKeyChanged(string value)       { _activityLog.Log("OpenAI API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
     partial void OnSeedanceApiKeyChanged(string value)     { _activityLog.Log("Seedance API key updated", Microsoft.Extensions.Logging.LogLevel.Information); ScheduleAutoSave(); }
@@ -740,6 +831,8 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnOllamaChatModelChanged(string value)    => ScheduleAutoSave();
     partial void OnFfmpegPathChanged(string value)         => ScheduleAutoSave();
     partial void OnLocalServerUrlChanged(string value)     => ScheduleAutoSave();
+    partial void OnVastApiKeyChanged(string value)           => ScheduleAutoSave();
+    partial void OnVastGpuTierChanged(string value)          => ScheduleAutoSave();
     partial void OnDefaultAspectRatioChanged(string value) => ScheduleAutoSave();
     partial void OnDefaultResolutionChanged(string value)  => ScheduleAutoSave();
     partial void OnDefaultDurationChanged(int value)       => ScheduleAutoSave();

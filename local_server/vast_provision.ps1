@@ -23,10 +23,16 @@
 param(
     [ValidateSet("4090", "A100", "H100", "Auto")]
     [string]$Tier = "Auto",
+    [string]$VastApiKey = "",
     [switch]$Teardown,
     [switch]$ListInstances,
     [switch]$Status
 )
+
+# If API key passed via command line, set it as env var
+if ($VastApiKey -and $VastApiKey -ne "") {
+    $env:VAST_API_KEY = $VastApiKey
+}
 
 $ErrorActionPreference = "Stop"
 $VastCliVersion = "0.2.3"

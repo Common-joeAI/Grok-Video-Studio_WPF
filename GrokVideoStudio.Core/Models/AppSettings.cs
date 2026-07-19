@@ -31,6 +31,10 @@ public sealed record AppSettings
     // ── Local GPU Server ──
     public string LocalServerUrl { get; init; } = "http://localhost:8000";
 
+    // ── Vast.ai Cloud GPU ──
+    public string VastApiKey { get; init; } = string.Empty;
+    public string VastGpuTier { get; init; } = "4090";  // 4090, A100, H100, Auto
+
     // ── Social Publishing: OAuth Client Credentials ──
     // YouTube uses a client_secrets.json file path (Google's convention)
     public string YouTubeApiKey { get; init; } = string.Empty;
