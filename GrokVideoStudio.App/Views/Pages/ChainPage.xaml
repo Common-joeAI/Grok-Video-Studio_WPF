@@ -155,16 +155,21 @@
                 </StackPanel>
             </Border>
 
-            <!-- ── Run / Cancel ── -->
+            <!-- ── Run / Cancel / Clear ── -->
             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="12">
                 <ui:Button Content="Run Chained Generation"
                            Icon="{ui:SymbolIcon Play24}"
                            Appearance="Primary"
                            Command="{Binding RunChainCommand}"
                            Padding="24,10" />
-                <ui:Button Content="Cancel"
+                <ui:Button Content="Stop"
+                           Icon="{ui:SymbolIcon Dismiss24}"
                            Appearance="Caution"
                            Command="{Binding CancelCommand}"
+                           Padding="20,10" />
+                <ui:Button Content="Clear"
+                           Icon="{ui:SymbolIcon Erase24}"
+                           Command="{Binding ClearChainCommand}"
                            Padding="20,10" />
             </StackPanel>
 

@@ -350,9 +350,44 @@ public partial class ChainGenerationViewModel : ObservableObject
     {
         _cts?.Cancel();
         StatusMessage = "Cancelling…";
+        _activityLog.Log("Chain generation cancelled by user", LogLevel.Warning);
     }
 
     private bool CanCancelChain => IsRunning;
+
+    [RelayCommand(CanExecute = nameof(CanClearChain))]
+    private void ClearChain()
+    {
+        // Stop any running generation first
+        if (IsRunning)
+        {
+            _cts?.Cancel();
+            _activityLog.Log("Chain generation stopped and cleared by user", LogLevel.Warning);
+        }
+
+        // Reset all state
+        ScenePlan.Clear();
+        AudioFilePath = null;
+        AudioDuration = 0;
+        Concept = string.Empty;
+        CurrentClip = 0;
+        TotalClips = 0;
+        CurrentStage = string.Empty;
+        OverallProgress = 0;
+        ResultVideoPath = null;
+        StatusMessage = "Ready.";
+        CalculatedClipCount = 0;
+
+        // Re-evaluate command states
+        RunChainCommand.NotifyCanExecuteChanged();
+        AnalyzeAudioCommand.NotifyCanExecuteChanged();
+
+        _activityLog.Log("Chain state cleared", LogLevel.Information);
+    }
+
+    private bool CanClearChain =>
+        ScenePlan.Count > 0 || !string.IsNullOrEmpty(AudioFilePath) ||
+        !string.IsNullOrEmpty(Concept) || IsRunning;
 
     // ── Open Result ──────────────────────────────────────────
 
