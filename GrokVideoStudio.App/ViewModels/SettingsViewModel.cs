@@ -26,7 +26,7 @@ public partial class SettingsViewModel : ObservableObject
     // ── xAI Grok ──
     [ObservableProperty] private string _grokApiKey = string.Empty;
     [ObservableProperty] private string _grokChatModel = "grok-3-mini";
-    [ObservableProperty] private string _grokVideoModel = "grok-video-latest";
+    [ObservableProperty] private string _grokVideoModel = "grok-imagine-video";
 
     // ── OpenAI ──
     [ObservableProperty] private string _openAiApiKey = string.Empty;

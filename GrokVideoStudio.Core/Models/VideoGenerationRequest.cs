@@ -10,7 +10,7 @@ namespace GrokVideoStudio.Core.Models;
 public sealed record VideoGenerationRequest
 {
     [JsonPropertyName("model")]
-    public string Model { get; init; } = "grok-video-latest";
+    public string Model { get; init; } = "grok-imagine-video";
 
     [JsonPropertyName("prompt")]
     public string Prompt { get; init; } = string.Empty;

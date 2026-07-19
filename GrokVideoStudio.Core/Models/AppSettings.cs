@@ -15,7 +15,7 @@ public sealed record AppSettings
     // ── xAI Grok API ──
     public string GrokApiKey { get; init; } = string.Empty;
     public string GrokChatModel { get; init; } = "grok-3-mini";
-    public string GrokVideoModel { get; init; } = "grok-video-latest";
+    public string GrokVideoModel { get; init; } = "grok-imagine-video";
 
     // ── OpenAI API ──
     public string OpenAiApiKey { get; init; } = string.Empty;

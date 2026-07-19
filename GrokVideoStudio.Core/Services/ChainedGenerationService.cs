@@ -33,7 +33,7 @@ public sealed record ChainedGenerationRequest
     public VideoProvider Provider { get; init; } = VideoProvider.GrokImagine;
 
     /// <summary>Video model name.</summary>
-    public string Model { get; init; } = "grok-video-latest";
+    public string Model { get; init; } = "grok-imagine-video";
 
     /// <summary>Duration per clip in seconds.</summary>
     public int ClipDuration { get; init; } = 8;

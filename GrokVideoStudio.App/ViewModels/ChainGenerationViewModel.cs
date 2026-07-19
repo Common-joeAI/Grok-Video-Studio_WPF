@@ -45,7 +45,7 @@ public partial class ChainGenerationViewModel : ObservableObject
 
     // ── Generation settings ──
     [ObservableProperty] private VideoProvider _selectedProvider = VideoProvider.GrokImagine;
-    [ObservableProperty] private string _selectedModel = "grok-video-latest";
+    [ObservableProperty] private string _selectedModel = "grok-imagine-video";
     [ObservableProperty] private int _clipDuration = 8;
     [ObservableProperty] private string _aspectRatio = "16:9";
     [ObservableProperty] private string _resolution = "720p";
@@ -78,7 +78,7 @@ public partial class ChainGenerationViewModel : ObservableObject
     ];
     public ObservableCollection<string> Models { get; } =
     [
-        "grok-video-latest", "grok-imagine-video", "grok-imagine-video-1.5",
+        "grok-imagine-video", "grok-imagine-video-1.5",
         "sora-2", "sora-2-pro", "seedance-2.0"
     ];
     public ObservableCollection<string> AspectRatios { get; } = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"];
@@ -110,7 +110,7 @@ public partial class ChainGenerationViewModel : ObservableObject
         ClipDuration = s.DefaultDuration > 0 ? s.DefaultDuration : 8;
         AspectRatio = string.IsNullOrEmpty(s.DefaultAspectRatio) ? "16:9" : s.DefaultAspectRatio;
         Resolution = string.IsNullOrEmpty(s.DefaultResolution) ? "720p" : s.DefaultResolution;
-        SelectedModel = string.IsNullOrEmpty(s.GrokVideoModel) ? "grok-video-latest" : s.GrokVideoModel;
+        SelectedModel = string.IsNullOrEmpty(s.GrokVideoModel) ? "grok-imagine-video" : s.GrokVideoModel;
     }
 
     // ── Browse Audio ─────────────────────────────────────────
