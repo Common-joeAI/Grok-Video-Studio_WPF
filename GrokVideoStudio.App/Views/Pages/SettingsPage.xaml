@@ -301,10 +301,12 @@
                     <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
                         <TextBlock Text="Server URL" VerticalAlignment="Center" Width="100" />
                         <ui:TextBox Text="{Binding LocalServerUrl}" PlaceholderText="http://localhost:7860" MinWidth="250" />
+                        <ui:Button Content="Start Server" Icon="{ui:SymbolIcon Play24}" Appearance="Primary"
+                                   Command="{Binding StartLocalServerCommand}" Padding="12,6" />
                         <ui:Button Content="Test Connection" Icon="{ui:SymbolIcon PlugConnected24}" Appearance="Secondary"
                                    Command="{Binding TestLocalServerCommand}" Padding="12,6" />
                     </StackPanel>
-                    <TextBlock Text="Start the server: local_server\start_server.bat — auto-creates venv and installs LTX-Video"
+                    <TextBlock Text="Click Start Server to launch the LTX-Video server — auto-creates venv and installs dependencies on first run."
                                FontSize="12" Opacity="0.5" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>

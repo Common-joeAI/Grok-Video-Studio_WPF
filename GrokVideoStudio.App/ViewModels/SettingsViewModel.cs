@@ -614,6 +614,46 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task StartLocalServerAsync()
+    {
+        // Find start_server.ps1 relative to the app or in common repo locations
+        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
+        var candidates = new[]
+        {
+            System.IO.Path.Combine(exeDir, "local_server", "start_server.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "local_server", "start_server.ps1"),
+            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "start_server.ps1"),
+        };
+
+        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        if (scriptPath is null)
+        {
+            _activityLog.Log("Could not find start_server.ps1. Make sure the local_server folder exists in the repo.", LogLevel.Error);
+            return;
+        }
+
+        _activityLog.Log($"Starting local GPU server: {scriptPath}", LogLevel.Information);
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File "{scriptPath}"",
+                UseShellExecute = true,
+                CreateNoWindow = false,
+                WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
+            };
+            System.Diagnostics.Process.Start(psi);
+            _activityLog.Log("Local GPU server launching in new window...", LogLevel.Information);
+        }
+        catch (Exception ex)
+        {
+            _activityLog.Log($"Failed to start local server: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    [RelayCommand]
     private async Task TestLocalServerAsync()
     {
         _activityLog.Log($"Testing local GPU server at {LocalServerUrl}…", LogLevel.Information);
