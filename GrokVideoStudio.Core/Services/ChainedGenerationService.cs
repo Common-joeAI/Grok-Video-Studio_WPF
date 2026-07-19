@@ -439,31 +439,88 @@ public sealed class ChainedGenerationService : IChainedGenerationService
     /// <summary>
     /// Extract the last frame of a video as a base64 data URI for image-to-video.
     /// </summary>
-    private static async Task<string> ExtractLastFrameAsDataUriAsync(
+    private async Task<string> ExtractLastFrameAsDataUriAsync(
         string videoPath, string ffmpegPath, CancellationToken ct)
     {
+        // Validate ffmpeg exists
+        var resolvedPath = ffmpegPath;
+        if (string.IsNullOrEmpty(resolvedPath) || resolvedPath == "ffmpeg")
+        {
+            // Check if ffmpeg is on PATH
+            var pathDirs = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? Array.Empty<string>();
+            var found = pathDirs.Select(d => Path.Combine(d, "ffmpeg.exe"))
+                                .FirstOrDefault(File.Exists);
+            if (found is not null)
+                resolvedPath = found;
+            else if (!File.Exists("ffmpeg") && !File.Exists("ffmpeg.exe"))
+            {
+                _activityLog.Log("FFmpeg not found on PATH and no custom path set — frame extraction will fail. Set FFmpeg path in Settings.", LogLevel.Error);
+                throw new FileNotFoundException("FFmpeg not found. Set the FFmpeg path in Settings.");
+            }
+        }
+        else if (!File.Exists(resolvedPath))
+        {
+            _activityLog.Log($"FFmpeg not found at '{resolvedPath}' — check Settings path.", LogLevel.Error);
+            throw new FileNotFoundException($"FFmpeg not found at '{resolvedPath}'");
+        }
+
         var tempDir = Path.Combine(Path.GetTempPath(), "GrokVideoStudio", "frames");
         Directory.CreateDirectory(tempDir);
         var framePath = Path.Combine(tempDir, $"frame_{Guid.NewGuid():N}.png");
 
+        _activityLog.Log($"Extracting last frame: {resolvedPath} -sseof -3 -i \"{Path.GetFileName(videoPath)}\" ...", LogLevel.Debug);
+
         var psi = new ProcessStartInfo
         {
-            FileName = ffmpegPath,
+            FileName = resolvedPath,
             Arguments = $"-sseof -3 -i \"{videoPath}\" -frames:v 1 -q:v 2 \"{framePath}\" -y",
             UseShellExecute = false,
             CreateNoWindow = true,
-            RedirectStandardError = true
+            RedirectStandardError = true,
+            RedirectStandardOutput = true
         };
 
         using var process = new Process { StartInfo = psi };
-        process.Start();
-        await process.WaitForExitAsync(ct);
+        
+        var stderrBuilder = new StringBuilder();
+        process.ErrorDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                stderrBuilder.AppendLine(e.Data);
+        };
+
+        try
+        {
+            process.Start();
+            process.BeginErrorReadLine();
+
+            // Timeout after 30 seconds
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+
+            await process.WaitForExitAsync(timeoutCts.Token);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            try { process.Kill(); } catch { }
+            _activityLog.Log("FFmpeg frame extraction timed out after 30s", LogLevel.Error);
+            throw new TimeoutException("FFmpeg frame extraction timed out after 30 seconds");
+        }
 
         if (process.ExitCode != 0 || !File.Exists(framePath))
-            throw new InvalidOperationException($"Failed to extract last frame from {videoPath}");
+        {
+            var stderr = stderrBuilder.ToString().Trim();
+            _activityLog.Log($"FFmpeg frame extraction failed (exit {process.ExitCode}): {stderr}", LogLevel.Error);
+            throw new InvalidOperationException($"Failed to extract last frame from {Path.GetFileName(videoPath)}: {stderr}");
+        }
 
         var bytes = await File.ReadAllBytesAsync(framePath, ct);
         var base64 = Convert.ToBase64String(bytes);
+        
+        // Clean up temp frame
+        try { File.Delete(framePath); } catch { }
+
+        _activityLog.Log($"Frame extracted: {bytes.Length / 1024} KB PNG, base64 {base64.Length} chars", LogLevel.Debug);
         return $"data:image/png;base64,{base64}";
     }
 }
