@@ -181,59 +181,74 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                     OverallPercent = overallPct + (100.0 / clipCount * 0.7) // generation is 70% of each clip's work
                 }));
 
-            var pollResponse = await videoService.GenerateAsync(
-                videoRequest, request.ApiKey, pollInterval, maxAttempts, progressAdapter, ct);
-
-            if (!pollResponse.IsDone || pollResponse.Video is null)
+            // Per-clip try-catch: a single clip failure should skip, not kill the chain
+            string? clipPath = null;
+            try
             {
-                // If this was an image-to-video attempt, retry as text-to-video before failing
-                if (continuationImage is not null)
-                {
-                    _activityLog.Log($"Clip {i + 1}: image-to-video failed ({pollResponse.Status}), retrying as text-to-video…", LogLevel.Warning);
-                    continuationImage = null;
-                    videoRequest = videoRequest with { Image = null };
-
-                    var retryProgress = new Progress<string>(msg =>
-                        progress?.Report(new ChainedGenerationProgress
-                        {
-                            CurrentClip = i + 1,
-                            TotalClips = clipCount,
-                            Stage = "generating",
-                            Message = $"Clip {i + 1} (text-only retry): {msg}",
-                            OverallPercent = overallPct + (100.0 / clipCount * 0.7)
-                        }));
-
-                    pollResponse = await videoService.GenerateAsync(
-                        videoRequest, request.ApiKey, pollInterval, maxAttempts, retryProgress, ct);
-                }
+                var pollResponse = await videoService.GenerateAsync(
+                    videoRequest, request.ApiKey, pollInterval, maxAttempts, progressAdapter, ct);
 
                 if (!pollResponse.IsDone || pollResponse.Video is null)
                 {
-                    var errMsg = $"Clip {i + 1} failed: {pollResponse.Status} — {pollResponse.Error?.Message}";
-                    _activityLog.Log(errMsg, LogLevel.Error);
-                    return new ChainedGenerationResult
+                    // If this was an image-to-video attempt, retry as text-to-video before failing
+                    if (continuationImage is not null)
                     {
-                        Success = false,
-                        ErrorMessage = errMsg,
-                        ClipsGenerated = i,
-                        ClipPaths = clipPaths
-                    };
+                        _activityLog.Log($"Clip {i + 1}: image-to-video failed ({pollResponse.Status}), retrying as text-to-video…", LogLevel.Warning);
+                        continuationImage = null;
+                        videoRequest = videoRequest with { Image = null };
+
+                        var retryProgress = new Progress<string>(msg =>
+                            progress?.Report(new ChainedGenerationProgress
+                            {
+                                CurrentClip = i + 1,
+                                TotalClips = clipCount,
+                                Stage = "generating",
+                                Message = $"Clip {i + 1} (text-only retry): {msg}",
+                                OverallPercent = overallPct + (100.0 / clipCount * 0.7)
+                            }));
+
+                        pollResponse = await videoService.GenerateAsync(
+                            videoRequest, request.ApiKey, pollInterval, maxAttempts, retryProgress, ct);
+                    }
+
+                    if (!pollResponse.IsDone || pollResponse.Video is null)
+                    {
+                        throw new Exception($"Clip {i + 1} failed: {pollResponse.Status} — {pollResponse.Error?.Message}");
+                    }
                 }
+
+                // Download the clip
+                progress?.Report(new ChainedGenerationProgress
+                {
+                    CurrentClip = i + 1,
+                    TotalClips = clipCount,
+                    Stage = "downloading",
+                    Message = $"Downloading clip {i + 1}…",
+                    OverallPercent = overallPct + (100.0 / clipCount * 0.8)
+                });
+
+                clipPath = Path.Combine(request.OutputDirectory, $"chain_clip_{i + 1:D3}_{DateTime.Now:yyyyMMdd_HHmmss}.mp4");
+                await videoService.DownloadVideoAsync(pollResponse.Video.Url, clipPath, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // Don't swallow cancellation
+            }
+            catch (Exception clipEx)
+            {
+                _activityLog.Log($"Clip {i + 1} skipped: {clipEx.Message}", LogLevel.Error);
+                progress?.Report(new ChainedGenerationProgress
+                {
+                    CurrentClip = i + 1,
+                    TotalClips = clipCount,
+                    Stage = "skipped",
+                    Message = $"Clip {i + 1} failed, skipping: {clipEx.Message}",
+                    OverallPercent = (double)(i + 1) / clipCount * 100
+                });
+                continue; // Skip this clip, move to the next
             }
 
-            // Download the clip
-            progress?.Report(new ChainedGenerationProgress
-            {
-                CurrentClip = i + 1,
-                TotalClips = clipCount,
-                Stage = "downloading",
-                Message = $"Downloading clip {i + 1}…",
-                OverallPercent = overallPct + (100.0 / clipCount * 0.8)
-            });
-
-            var clipPath = Path.Combine(request.OutputDirectory, $"chain_clip_{i + 1:D3}_{DateTime.Now:yyyyMMdd_HHmmss}.mp4");
-            await videoService.DownloadVideoAsync(pollResponse.Video.Url, clipPath, ct);
-            clipPaths.Add(clipPath);
+            clipPaths.Add(clipPath!);
 
             // Save to history
             var videoItem = new VideoItem
@@ -244,7 +259,7 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 Resolution = request.Resolution,
                 AspectRatio = request.AspectRatio,
                 SourceImagePath = i > 0 ? "chained-from-previous" : null,
-                VideoUrl = pollResponse.Video.Url,
+                VideoUrl = string.Empty, // URL was inside the try scope; clip path is what matters
                 LocalFilePath = clipPath,
                 Status = VideoGenerationStatus.Completed,
                 SourceProvider = request.Provider,
@@ -263,6 +278,24 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 Message = $"Clip {i + 1} complete.",
                 OverallPercent = overallPct + (100.0 / clipCount * 0.9)
             });
+        }
+
+        // If all clips failed, abort
+        if (clipPaths.Count == 0)
+        {
+            _activityLog.Log("All clips failed — nothing to stitch.", LogLevel.Error);
+            return new ChainedGenerationResult
+            {
+                Success = false,
+                ErrorMessage = "All clips failed during generation.",
+                ClipsGenerated = 0,
+                ClipPaths = clipPaths
+            };
+        }
+
+        if (clipPaths.Count < clipCount)
+        {
+            _activityLog.Log($"Note: {clipCount - clipPaths.Count} clip(s) were skipped due to errors. Stitching {clipPaths.Count} successful clips.", LogLevel.Warning);
         }
 
         // Stitch all clips together
