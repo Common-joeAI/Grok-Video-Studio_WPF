@@ -161,16 +161,21 @@ function Normalize-VastApiKey([string]$Key) {
     return $candidate.ToLowerInvariant()
 }
 
-function Test-VastAuthentication {
-    $output = & $script:VastCli show user --raw 2>&1
-    $exitCode = $LASTEXITCODE
-    $text = ($output -join "`n").Trim()
-    $apiError = Get-VastErrorMessage $text
+function Get-VastUser {
+    $json = (Invoke-Vast @("show", "user", "--raw")) -join "`n"
+    $result = $json | ConvertFrom-Json
+    if ($result.PSObject.Properties["user"]) { return $result.user }
+    return $result
+}
 
-    if ($exitCode -eq 0 -and -not $apiError) { return $true }
-    if ($apiError) { Write-Err $apiError }
-    elseif ($text) { Write-Err $text }
-    return $false
+function Test-VastAuthentication {
+    try {
+        $null = Get-VastUser
+        return $true
+    } catch {
+        Write-Err $_.Exception.Message
+        return $false
+    }
 }
 
 function Set-AndVerifyVastKey([string]$Key) {
@@ -215,6 +220,30 @@ function Ensure-ApiKey {
     return Set-AndVerifyVastKey $key
 }
 
+function Ensure-VastCredit {
+    try {
+        $user = Get-VastUser
+        if (-not $user.PSObject.Properties["balance"]) {
+            Write-Err "Vast.ai did not return an account balance."
+            return $false
+        }
+
+        $balance = [double]$user.balance
+        $displayBalance = $balance.ToString("0.00", [Globalization.CultureInfo]::InvariantCulture)
+        if ($balance -le 0) {
+            Write-Err "Vast.ai account credit: `$$displayBalance"
+            Write-Err "Add prepaid credit on the Vast.ai Billing page before renting a GPU."
+            return $false
+        }
+
+        Write-OK "Vast.ai account credit: `$$displayBalance"
+        return $true
+    } catch {
+        Write-Err "Could not read Vast.ai account credit: $($_.Exception.Message)"
+        return $false
+    }
+}
+
 function Get-Query {
     switch ($Tier) {
         "4090" { return "gpu_name=RTX_4090 num_gpus=1 reliability>=0.95 disk_space>=$DiskGb rented=false" }
@@ -237,7 +266,7 @@ function Search-Offers {
         for ($i = 0; $i -lt $offers.Count; $i++) {
             $offer = $offers[$i]
             $price = if ($null -ne $offer.dph_total) { [double]$offer.dph_total } else { [double]$offer.dph }
-            Write-Host ("  [{0}] ID {1} | {2} | ${3:N3}/hr" -f ($i + 1), $offer.id, $offer.gpu_name, $price)
+            Write-Host ('  [{0}] ID {1} | {2} | ${3:0.000}/hr' -f ($i + 1), $offer.id, $offer.gpu_name, $price)
         }
 
         if ($Tier -eq "Auto") { return [string]$offers[0].id }
@@ -300,7 +329,11 @@ function Create-Instance([string]$OfferId) {
         Write-OK "Instance created: $id"
         return [string]$id
     } catch {
-        Write-Err $_.Exception.Message
+        $message = $_.Exception.Message
+        Write-Err $message
+        if ($message -match "lacks credit") {
+            Write-Warn "Add credit on the Vast.ai Billing page, then run provisioning again."
+        }
         return $null
     } finally {
         if ($onstart -and (Test-Path $onstart)) {
@@ -405,6 +438,8 @@ if ($Teardown) {
     Destroy-SavedInstance
     exit 0
 }
+
+if (-not (Ensure-VastCredit)) { exit 1 }
 
 if ($Tier -eq "Auto") {
     Write-Host "  [1] RTX 4090`n  [2] A100`n  [3] H100`n  [4] Auto"
