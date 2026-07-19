@@ -81,8 +81,7 @@ function Ensure-VastCli {
         return $false
     }
 
-    $installCmd = "`"$pyExe`" -m pip install vast-ai==0.2.3"
-    Invoke-Expression $installCmd 2>&1 | Out-Null
+    & $pyExe -m pip install "vast-ai==0.2.3" 2>&1 | Out-Null
 
     # Add to PATH for this session
     $pipScripts = Join-Path (Split-Path $pyExe) "Scripts"
