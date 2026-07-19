@@ -71,21 +71,35 @@ function Ensure-VastCli {
     }
 
     Write-Step "Installing Vast.ai CLI via pip..."
-    $pyExe = (Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
-    if (-not $pyExe) {
-        $pyExe = (Get-Command py -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
-        if ($pyExe) { $pyExe = "$pyExe -3.12" }
+    # Target Python 3.10-3.13 (vast-ai has no wheels for 3.14 yet)
+    $pyExe = $null
+    foreach ($ver in @("3.12", "3.11", "3.10", "3.13")) {
+        $testResult = & py -$ver --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and $testResult -match "Python") {
+            $pyExe = "py -$ver"
+            Write-Step "Using Python $ver for vast-ai install"
+            break
+        }
     }
+
     if (-not $pyExe) {
-        Write-Err "Python not found. Install Python 3.12+ first."
+        Write-Err "No compatible Python found. vast-ai needs Python 3.10-3.13."
+        Write-Err "Python 3.14 is too new - no vast-ai wheels available."
+        Write-Host "  Install Python 3.12 from: https://www.python.org/downloads/release/python-3120/" -ForegroundColor Yellow
         return $false
     }
 
-    & $pyExe -m pip install "vast-ai==0.2.3" 2>&1 | Out-Null
+    & $pyExe -m pip install "vast-ai" 2>&1 | Out-Null
 
-    # Add to PATH for this session
-    $pipScripts = Join-Path (Split-Path $pyExe) "Scripts"
-    if (Test-Path $pipScripts) { $env:PATH += ";$pipScripts" }
+    # Add user Scripts and Python dir to PATH for this session
+    $pyPath = (& $pyExe -c "import sys; print(sys.prefix)" 2>$null)
+    if ($pyPath) {
+        $pipScripts = Join-Path $pyPath "Scripts"
+        if (Test-Path $pipScripts) { $env:PATH += ";$pipScripts" }
+    }
+    # Also check APPDATA for user installs
+    $userScripts = Join-Path $env:APPDATA "Python\Scripts"
+    if (Test-Path $userScripts) { $env:PATH += ";$userScripts" }
 
     $vast = Get-Command vast -ErrorAction SilentlyContinue
     if ($vast) {
