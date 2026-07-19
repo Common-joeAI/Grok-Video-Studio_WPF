@@ -349,6 +349,7 @@ worker_thread.start()
 # FastAPI routes
 
 @app.get("/")
+@app.get("/health")
 def health_check():
     return {
         "status": "healthy",
