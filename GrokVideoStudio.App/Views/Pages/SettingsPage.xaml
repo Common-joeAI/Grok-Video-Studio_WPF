@@ -222,7 +222,7 @@
                                            Password="{Binding VastApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                            PlaceholderText="Get key at vast.ai/console/api…" Margin="0,0,0,10" />
                             <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="6" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,16,10">
-                                <ui:SymbolIcon Symbol="Processing24" FontSize="14" Opacity="0.5" />
+                                <ui:SymbolIcon Symbol="Beaker24" FontSize="14" Opacity="0.5" />
                                 <TextBlock Text="GPU Tier" />
                             </StackPanel>
                             <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding VastGpuTiers}" SelectedItem="{Binding VastGpuTier}" Margin="0,0,0,10" />
