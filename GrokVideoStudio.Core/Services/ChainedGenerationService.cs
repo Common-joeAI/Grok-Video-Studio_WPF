@@ -83,6 +83,7 @@ public sealed record ChainedGenerationProgress
     public string Stage { get; init; } = "";
     public string Message { get; init; } = "";
     public double OverallPercent { get; init; }
+    public TimeSpan? EstimatedRemaining { get; init; }
 }
 
 public sealed class ChainedGenerationService : IChainedGenerationService
@@ -122,6 +123,8 @@ public sealed class ChainedGenerationService : IChainedGenerationService
         var videoService = _videoFactory.GetService(request.Provider);
         var pollInterval = 5;
         var maxAttempts = 120;
+        var chainStopwatch = Stopwatch.StartNew();
+        var clipDurations = new List<double>();
 
         _activityLog.Log($"Chained generation started: {clipCount} clips, {request.Provider}/{request.Model}", LogLevel.Information);
 
@@ -131,6 +134,7 @@ public sealed class ChainedGenerationService : IChainedGenerationService
             var prompt = request.Prompts[i];
             var overallPct = (double)i / clipCount * 100;
 
+            var estimate = EstimateRemaining(i, clipCount, clipDurations);
             progress?.Report(new ChainedGenerationProgress
             {
                 CurrentClip = i + 1,
@@ -139,7 +143,8 @@ public sealed class ChainedGenerationService : IChainedGenerationService
                 Message = i == 0
                     ? $"Generating clip {i + 1}/{clipCount}…"
                     : $"Generating clip {i + 1}/{clipCount} (continued from clip {i})…",
-                OverallPercent = overallPct
+                OverallPercent = overallPct,
+                EstimatedRemaining = estimate
             });
 
             // Build the generation request
@@ -435,6 +440,25 @@ public sealed class ChainedGenerationService : IChainedGenerationService
             ClipsGenerated = clipPaths.Count,
             TotalDurationSeconds = clipPaths.Count * request.ClipDuration
         };
+    }
+
+    /// <summary>
+    /// Estimate remaining time based on average clip duration so far.
+    /// </summary>
+    private static TimeSpan? EstimateRemaining(int completedClips, int totalClips, List<double> clipDurations)
+    {
+        if (completedClips == 0 || clipDurations.Count == 0)
+            return null;
+
+        var avgSeconds = clipDurations.Average();
+        var remainingClips = totalClips - completedClips;
+        var remainingSeconds = avgSeconds * remainingClips;
+
+        // Add ~30s for final stitching if we have more than 1 clip
+        if (totalClips > 1)
+            remainingSeconds += 30;
+
+        return TimeSpan.FromSeconds(remainingSeconds);
     }
 
     /// <summary>

@@ -184,7 +184,11 @@
                         <TextBlock Text="{Binding CurrentStage, StringFormat=' — {0}'}" Opacity="0.7" />
                     </StackPanel>
                     <ProgressBar Value="{Binding OverallProgress}" Maximum="100" Height="8" />
-                    <TextBlock Text="{Binding StatusMessage}" FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" helpers:StackPanelHelper.Spacing="8">
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="13" Opacity="0.7" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding TimeEstimate}" FontSize="13" FontWeight="SemiBold" Opacity="0.9"
+                                   Visibility="{Binding TimeEstimate, Converter={StaticResource StringToVisConverter}}" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

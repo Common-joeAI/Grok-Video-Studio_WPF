@@ -66,6 +66,7 @@ public partial class ChainGenerationViewModel : ObservableObject
     [ObservableProperty] private int _currentClip;
     [ObservableProperty] private int _totalClips;
     [ObservableProperty] private string _currentStage = string.Empty;
+    [ObservableProperty] private string _timeEstimate = string.Empty;
     [ObservableProperty] private string? _resultVideoPath;
 
     // ── Scene plan ──
@@ -266,6 +267,7 @@ public partial class ChainGenerationViewModel : ObservableObject
         OverallProgress = 0;
         ResultVideoPath = null;
         StatusMessage = $"Starting chained generation of {prompts.Count} clips…";
+                TimeEstimate = "";
         _activityLog.Log($"Chained generation started: {prompts.Count} clips, {SelectedProvider}/{SelectedModel}", LogLevel.Information);
 
         try
@@ -305,6 +307,9 @@ public partial class ChainGenerationViewModel : ObservableObject
                 CurrentStage = p.Stage;
                 StatusMessage = p.Message;
                 OverallProgress = p.OverallPercent;
+                TimeEstimate = p.EstimatedRemaining is not null
+                    ? $"~{p.EstimatedRemaining.Value.TotalMinutes:F0} min remaining"
+                    : "";
             });
 
             var result = await _chainedGeneration.RunChainedGenerationAsync(request, progress, _cts.Token);
@@ -313,6 +318,7 @@ public partial class ChainGenerationViewModel : ObservableObject
             {
                 ResultVideoPath = result.FinalVideoPath;
                 StatusMessage = $"✓ Complete! {result.ClipsGenerated} clips stitched → {result.FinalVideoPath}";
+                TimeEstimate = "";
                 _activityLog.Log($"Chained generation complete: {result.FinalVideoPath}", LogLevel.Information);
             }
             else
@@ -324,6 +330,7 @@ public partial class ChainGenerationViewModel : ObservableObject
         catch (OperationCanceledException)
         {
             StatusMessage = "Cancelled.";
+                TimeEstimate = "";
             _activityLog.Log("Chained generation cancelled", LogLevel.Warning);
         }
         catch (Exception ex)
