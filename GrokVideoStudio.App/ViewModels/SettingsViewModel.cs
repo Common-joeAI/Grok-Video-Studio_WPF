@@ -687,8 +687,8 @@ public partial class SettingsViewModel : ObservableObject
         {
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}'",
+                FileName = "cmd.exe",
+                Arguments = "/c start \"GrokVideoStudio\" cmd /k powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"" + scriptPath + "\"",
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
@@ -770,14 +770,14 @@ public partial class SettingsViewModel : ObservableObject
         try
         {
             // Pass tier and API key as arguments
-            var args = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}' -Tier {VastGpuTier}";
+            var psArgs = "-NoProfile -ExecutionPolicy Bypass -File \"" + scriptPath + "\" -Tier " + VastGpuTier;
             if (!string.IsNullOrEmpty(VastApiKey))
-                args += $" -VastApiKey '{VastApiKey}'";
+                psArgs += " -VastApiKey \"" + VastApiKey + "\"";
 
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = args,
+                FileName = "cmd.exe",
+                Arguments = "/c start \"GrokVideoStudio\" cmd /k powershell.exe " + psArgs,
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)
@@ -807,8 +807,8 @@ public partial class SettingsViewModel : ObservableObject
         {
             var psi = new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Bypass -NoExit -File '{scriptPath}' -Teardown",
+                FileName = "cmd.exe",
+                Arguments = "/c start \"GrokVideoStudio\" cmd /k powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"" + scriptPath + "\" -Teardown",
                 UseShellExecute = true,
                 CreateNoWindow = false,
                 WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath)

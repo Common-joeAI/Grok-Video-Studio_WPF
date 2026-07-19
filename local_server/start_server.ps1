@@ -123,3 +123,12 @@ $url = "http://localhost:7860"
 Write-Host "[INFO] Starting LTX-Video server on $url" -ForegroundColor Green
 Write-Host ""
 & python video_server.py --port 7860
+
+# -- Error handling: keep window open if server crashes --
+if ($LASTEXITCODE -ne 0 -or $?) {
+    Write-Host ""
+    Write-Host "[ERROR] Server exited with code $LASTEXITCODE" -ForegroundColor Red
+    Write-Host "Check the output above for errors." -ForegroundColor Yellow
+}
+Write-Host ""
+Read-Host "Press Enter to close this window"

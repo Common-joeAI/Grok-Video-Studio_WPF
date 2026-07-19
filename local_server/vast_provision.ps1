@@ -2,7 +2,7 @@
 .SYNOPSIS
   One-click Vast.ai GPU provisioning for GrokVideoStudio.
   Rents a cloud GPU, deploys the LTX-Video server, and prints the URL
-  to paste into Settings → Local Server URL.
+  to paste into Settings -> Local Server URL.
 
 .DESCRIPTION
   Prerequisites:
@@ -11,7 +11,7 @@
     - Credits loaded on your account
 
   Usage:
-    .\vast_provision.ps1                    # Interactive — pick GPU tier
+    .\vast_provision.ps1                    # Interactive -- pick GPU tier
     .\vast_provision.ps1 -Tier 4090         # RTX 4090 (~$0.30/hr)
     .\vast_provision.ps1 -Tier A100         # A100 80GB (~$1.50/hr)
     .\vast_provision.ps1 -Tier H100         # H100 80GB (~$2.50/hr)
@@ -38,10 +38,10 @@ $VastCliVersion = "0.2.3"
 $InstanceFile = Join-Path $PSScriptRoot ".vast_instance_id"
 $ServerDir = $PSScriptRoot
 
-# ── Helpers ──────────────────────────────────────────────
+#  Helpers 
 
 function Write-Header($msg) {
-    Write-Host "`n$([char]0x1f680) $msg`n" -ForegroundColor Cyan
+    Write-Host "`n$("==>") $msg`n" -ForegroundColor Cyan
 }
 
 function Write-Step($msg) {
@@ -60,7 +60,7 @@ function Write-Err($msg) {
     Write-Host "  $msg" -ForegroundColor Red
 }
 
-# ── Install Vast CLI ─────────────────────────────────────
+#  Install Vast CLI 
 
 function Ensure-VastCli {
     Write-Step "Checking for Vast.ai CLI..."
@@ -141,7 +141,7 @@ function Ensure-VastApiKey {
     return $true
 }
 
-# ── Search & Provision ───────────────────────────────────
+#  Search & Provision 
 
 function Get-GpuFilter {
     switch ($Tier) {
@@ -169,7 +169,7 @@ function Search-Instances {
         return $null
     }
 
-    # Parse the raw output — columns: id, gpu_name, dph, gpu_ram, dlperf, etc.
+    # Parse the raw output -- columns: id, gpu_name, dph, gpu_ram, dlperf, etc.
     # Show top 5 cheapest
     Write-Host ""
     Write-Host "  Top 5 cheapest offers:" -ForegroundColor White
@@ -274,7 +274,7 @@ function Copy-ServerFiles {
         $state = vast show instances --raw 2>&1 | Select-String $InstanceId
         if ($state -match "running") { break }
         if ($waited -ge $maxWait) {
-            Write-Warn "Instance still initializing after $maxWait seconds — continuing anyway."
+            Write-Warn "Instance still initializing after $maxWait seconds -- continuing anyway."
             break
         }
         Write-Host "." -NoNewline -ForegroundColor DarkGray
@@ -346,7 +346,7 @@ function Wait-ServerReady {
 
     Write-Host ""
     Write-Warn "Server not ready after $maxWait seconds. It may still be downloading models."
-    Write-Warn "Check back in a few minutes — the URL is still valid."
+    Write-Warn "Check back in a few minutes -- the URL is still valid."
     return $false
 }
 
@@ -381,13 +381,13 @@ function Show-Status {
     vast show instances --raw 2>&1 | Select-String $instanceId
 }
 
-# ── Main ─────────────────────────────────────────────────
+#  Main 
 
 if ($ListInstances) { Show-Instances; exit 0 }
 if ($Status) { Show-Status; exit 0 }
 if ($Teardown) { Stop-Instance; exit 0 }
 
-Write-Header "GrokVideoStudio → Vast.ai Cloud GPU"
+Write-Header "GrokVideoStudio -> Vast.ai Cloud GPU"
 
 # Tier selection
 if ($Tier -eq "Auto") {
@@ -434,7 +434,7 @@ Copy-ServerFiles -InstanceId $instanceId
 $url = Get-InstanceUrl -InstanceId $instanceId
 if (-not $url) {
     Write-Warn "Could not auto-detect URL. Run 'vast show instances' to find the IP."
-    Write-Step "Look for the ports column — find 7860 → connect_ip:port"
+    Write-Step "Look for the ports column -- find 7860 -> connect_ip:port"
     Write-Host ""
     $manualUrl = Read-Host "  Paste the URL (http://IP:PORT)"
     if ($manualUrl) { $url = $manualUrl }
@@ -446,7 +446,7 @@ if ($url) {
     Write-Host "  SERVER URL: $url" -ForegroundColor Green
     Write-Host "  ===================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "  Paste this into Settings → Local Server URL" -ForegroundColor White
+    Write-Host "  Paste this into Settings -> Local Server URL" -ForegroundColor White
     Write-Host "  Then click Test Connection" -ForegroundColor White
     Write-Host ""
     Write-Host "  To stop the instance later:" -ForegroundColor DarkGray

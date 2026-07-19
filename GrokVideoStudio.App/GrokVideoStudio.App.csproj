@@ -60,4 +60,13 @@
     <Resource Include="Assets/splash.png" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <!-- Package local_server scripts into build/publish output -->
+    <Content Include="..\local_server\**\*"
+             Exclude="..\local_server\__pycache__\**;..\local_server\.venv\**;..\local_server\.vast_instance_id;..\local_server\venv\**"
+             CopyToOutputDirectory="PreserveNewest"
+             Link="local_server\%(RecursiveDir)%(FileName)%(Extension)" />
+  </ItemGroup>
+
 </Project>
