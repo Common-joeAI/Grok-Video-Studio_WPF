@@ -645,19 +645,36 @@ public partial class SettingsViewModel : ObservableObject
         finally { IsTestingSeedance = false; }
     }
 
+    /// <summary>
+    /// Searches up to 8 directory levels from the exe to find a script
+    /// in the local_server folder — works from both repo dev and published layouts.
+    /// </summary>
+    private static string? FindScript(string scriptFileName)
+    {
+        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
+        var dir = new System.IO.DirectoryInfo(exeDir);
+
+        for (int i = 0; i < 8 && dir is not null; i++)
+        {
+            var candidate = System.IO.Path.Combine(dir.FullName, "local_server", scriptFileName);
+            if (System.IO.File.Exists(candidate))
+                return candidate;
+
+            // Also check without the local_server subfolder (published layout)
+            var flat = System.IO.Path.Combine(dir.FullName, scriptFileName);
+            if (System.IO.File.Exists(flat))
+                return flat;
+
+            dir = dir.Parent;
+        }
+        return null;
+    }
+
     [RelayCommand]
     private async Task StartLocalServerAsync()
     {
         // Find start_server.ps1 relative to the app or in common repo locations
-        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
-        var candidates = new[]
-        {
-            System.IO.Path.Combine(exeDir, "local_server", "start_server.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "local_server", "start_server.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "start_server.ps1"),
-        };
-
-        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        var scriptPath = FindScript("start_server.ps1");
         if (scriptPath is null)
         {
             _activityLog.Log("Could not find start_server.ps1. Make sure the local_server folder exists in the repo.", LogLevel.Error);
@@ -741,15 +758,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task StartVastServerAsync()
     {
-        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
-        var candidates = new[]
-        {
-            System.IO.Path.Combine(exeDir, "local_server", "vast_provision.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "local_server", "vast_provision.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "vast_provision.ps1"),
-        };
-
-        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        var scriptPath = FindScript("vast_provision.ps1");
         if (scriptPath is null)
         {
             _activityLog.Log("Could not find vast_provision.ps1. Make sure the local_server folder exists in the repo.", LogLevel.Error);
@@ -785,15 +794,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task StopVastServerAsync()
     {
-        var exeDir = System.IO.Path.GetDirectoryName(Environment.ProcessPath) ?? "";
-        var candidates = new[]
-        {
-            System.IO.Path.Combine(exeDir, "local_server", "vast_provision.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "local_server", "vast_provision.ps1"),
-            System.IO.Path.Combine(exeDir, "..", "..", "..", "..", "local_server", "vast_provision.ps1"),
-        };
-
-        var scriptPath = candidates.FirstOrDefault(System.IO.File.Exists);
+        var scriptPath = FindScript("vast_provision.ps1");
         if (scriptPath is null)
         {
             _activityLog.Log("Could not find vast_provision.ps1.", LogLevel.Error);

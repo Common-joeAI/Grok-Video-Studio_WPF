@@ -29,7 +29,7 @@ public sealed record AppSettings
     public string SeedanceApiKey { get; init; } = string.Empty;
 
     // ── Local GPU Server ──
-    public string LocalServerUrl { get; init; } = "http://localhost:8000";
+    public string LocalServerUrl { get; init; } = "http://localhost:7860";
 
     // ── Vast.ai Cloud GPU ──
     public string VastApiKey { get; init; } = string.Empty;

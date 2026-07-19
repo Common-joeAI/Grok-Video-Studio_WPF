@@ -1,4 +1,3 @@
-#requires -version 7.0
 <#
 .SYNOPSIS
   One-click Vast.ai GPU provisioning for GrokVideoStudio.
@@ -72,9 +71,9 @@ function Ensure-VastCli {
     }
 
     Write-Step "Installing Vast.ai CLI via pip..."
-    $pyExe = (Get-Command python -ErrorAction SilentlyContinue)?.Source
+    $pyExe = (Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
     if (-not $pyExe) {
-        $pyExe = (Get-Command py -ErrorAction SilentlyContinue)?.Source
+        $pyExe = (Get-Command py -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
         if ($pyExe) { $pyExe = "$pyExe -3.12" }
     }
     if (-not $pyExe) {
