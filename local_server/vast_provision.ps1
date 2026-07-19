@@ -71,14 +71,59 @@ function Ensure-VastCli {
     }
 
     Write-Step "Installing Vast.ai CLI via pip..."
-    # Target Python 3.10-3.13 (vast-ai has no wheels for 3.14 yet)
+    # vast-ai has no wheels for Python 3.14; need 3.10-3.13
     $pyExe = $null
+    $pyVer = $null
+
+    # Method 1: Try py launcher with specific versions (suppress errors)
     foreach ($ver in @("3.12", "3.11", "3.10", "3.13")) {
-        $testResult = & py -$ver --version 2>&1
-        if ($LASTEXITCODE -eq 0 -and $testResult -match "Python") {
-            $pyExe = "py -$ver"
-            Write-Step "Using Python $ver for vast-ai install"
-            break
+        try {
+            $testResult = & py -$ver --version 2>&1
+            if ($LASTEXITCODE -eq 0 -and $testResult -match "Python") {
+                $pyExe = "py -$ver"
+                $pyVer = $ver
+                Write-Step "Using Python $ver (py launcher) for vast-ai install"
+                break
+            }
+        } catch { }
+    }
+
+    # Method 2: Check known install paths directly (py launcher may not be configured)
+    if (-not $pyExe) {
+        $localProgs = Join-Path $env:LOCALAPPDATA "Programs\Python"
+        if (Test-Path $localProgs) {
+            foreach ($dir in (Get-ChildItem $localProgs -Directory | Sort-Object Name -Descending)) {
+                if ($dir.Name -match "Python(\d)(\d+)") {
+                    $major = [int]$Matches[1]
+                    $minor = [int]$Matches[2]
+                    if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
+                        $exePath = Join-Path $dir.FullName "python.exe"
+                        if (Test-Path $exePath) {
+                            $pyExe = $exePath
+                            $pyVer = "3.$minor"
+                            Write-Step "Using Python 3.$minor ($exePath) for vast-ai install"
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    # Method 3: Check python on PATH if it is a compatible version
+    if (-not $pyExe) {
+        $pathPy = (Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
+        if ($pathPy) {
+            $verResult = & $pathPy --version 2>&1
+            if ($verResult -match "Python (\d+)\.(\d+)") {
+                $major = [int]$Matches[1]
+                $minor = [int]$Matches[2]
+                if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
+                    $pyExe = $pathPy
+                    $pyVer = "3.$minor"
+                    Write-Step "Using Python 3.$minor (PATH) for vast-ai install"
+                }
+            }
         }
     }
 
