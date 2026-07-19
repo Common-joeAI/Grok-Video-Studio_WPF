@@ -92,7 +92,7 @@ public partial class App : WpfUiApp
                 services.AddTransient<ActivityLogViewModel>();
                 services.AddSingleton<ActivityTrackerViewModel>();
                 services.AddSingleton<SettingsViewModel>();
-                services.AddTransient<ChainGenerationViewModel>();
+                services.AddSingleton<ChainGenerationViewModel>();
                 services.AddTransient<BrandingViewModel>();
 
                 // ── Main window ──
