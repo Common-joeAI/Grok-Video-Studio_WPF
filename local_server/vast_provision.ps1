@@ -71,7 +71,7 @@ function Ensure-VastCli {
     }
 
     Write-Step "Installing Vast.ai CLI via pip..."
-    # vast-ai has no wheels for Python 3.14; need 3.10-3.13
+    # vastai has no wheels for Python 3.14; need 3.10-3.13
     $pyExe = $null
     $pyVer = $null
 
@@ -85,7 +85,7 @@ function Ensure-VastCli {
                 if ($resolvedPath -and (Test-Path $resolvedPath)) {
                     $pyExe = $resolvedPath
                     $pyVer = $ver
-                    Write-Step "Using Python $ver ($resolvedPath) for vast-ai install"
+                    Write-Step "Using Python $ver ($resolvedPath) for vastai install"
                     break
                 }
             }
@@ -105,7 +105,7 @@ function Ensure-VastCli {
                         if (Test-Path $exePath) {
                             $pyExe = $exePath
                             $pyVer = "3.$minor"
-                            Write-Step "Using Python 3.$minor ($exePath) for vast-ai install"
+                            Write-Step "Using Python 3.$minor ($exePath) for vastai install"
                             break
                         }
                     }
@@ -125,20 +125,20 @@ function Ensure-VastCli {
                 if ($major -eq 3 -and $minor -ge 10 -and $minor -le 13) {
                     $pyExe = $pathPy
                     $pyVer = "3.$minor"
-                    Write-Step "Using Python 3.$minor (PATH) for vast-ai install"
+                    Write-Step "Using Python 3.$minor (PATH) for vastai install"
                 }
             }
         }
     }
 
     if (-not $pyExe) {
-        Write-Err "No compatible Python found. vast-ai needs Python 3.10-3.13."
-        Write-Err "Python 3.14 is too new - no vast-ai wheels available."
+        Write-Err "No compatible Python found. vastai needs Python 3.10-3.13."
+        Write-Err "Python 3.14 is too new - no vastai wheels available."
         Write-Host "  Install Python 3.12 from: https://www.python.org/downloads/release/python-3120/" -ForegroundColor Yellow
         return $false
     }
 
-    & $pyExe -m pip install "vast-ai" 2>&1 | Out-Null
+    & $pyExe -m pip install "vastai" 2>&1 | Out-Null
 
     # Add user Scripts and Python dir to PATH for this session
     $pyPath = (& $pyExe -c "import sys; print(sys.prefix)" 2>$null)
@@ -164,7 +164,7 @@ function Ensure-VastCli {
         return $true
     }
 
-    Write-Err "Could not install Vast CLI. Try: pip install vast-ai"
+    Write-Err "Could not install Vast CLI. Try: pip install vastai"
     return $false
 }
 
